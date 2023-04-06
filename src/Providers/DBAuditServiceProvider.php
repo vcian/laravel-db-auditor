@@ -1,6 +1,6 @@
 <?php
 
-namespace dbplayground\Providers;
+namespace Vcian\LaravelDBPlayground\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -8,8 +8,8 @@ class DBAuditServiceProvider extends ServiceProvider
 {
 
     protected $commands = [
-        'dbplayground\Commands\DBAuditCommand',
-        'dbplayground\Commands\DBStandardCommand'
+        'Vcian\LaravelDBPlayground\Commands\DBAuditCommand',
+        'Vcian\LaravelDBPlayground\Commands\DBStandardCommand'
     ];
     /**
      * Register services.
@@ -24,6 +24,6 @@ class DBAuditServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadViewsFrom(__DIR__.'/../views', 'Dbaudit');
+        $this->loadViewsFrom(__DIR__.'/../views', 'DBPlayground');
     }
 }

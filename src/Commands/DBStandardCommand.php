@@ -1,9 +1,9 @@
 <?php
 
-namespace dbplayground\Commands;
+namespace Vcian\LaravelDBPlayground\Commands;
 
 use Illuminate\Console\Command;
-use dbplayground\Services\RuleService;
+use Vcian\LaravelDBPlayground\Services\RuleService;
 use function Termwind\render;
 
 class DBStandardCommand extends Command
@@ -40,7 +40,7 @@ class DBStandardCommand extends Command
         }
 
         return render(
-            view('Dbaudit::standard', [
+            view('DBPlayground::standard', [
                 'tables' => $tableResult,
             ])
         );

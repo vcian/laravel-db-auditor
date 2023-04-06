@@ -1,10 +1,10 @@
 <?php
 
-namespace dbplayground\Services;
+namespace Vcian\LaravelDBPlayground\Services;
 
 use Exception;
 use Illuminate\Support\Facades\Log;
-use dbplayground\Constants\Constant;
+use Vcian\LaravelDBPlayground\Constants\Constant;
 
 class RuleService
 {

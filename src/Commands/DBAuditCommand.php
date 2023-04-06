@@ -1,14 +1,14 @@
 <?php
 
-namespace dbplayground\Commands;
+namespace Vcian\LaravelDBPlayground\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Constraint\Constraint;
-use dbplayground\Constants\Constant;
-use dbplayground\Services\AuditService;
+use Vcian\LaravelDBPlayground\Constants\Constant;
+use Vcian\LaravelDBPlayground\Services\AuditService;
 
 use function Termwind\{render};
 

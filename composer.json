@@ -1,18 +1,35 @@
 {
-    "name": "urvin/dbaudit",
-    "description": "Database Audit",
-    "type": "project",
-    "autoload": {
-        "psr-4": {
-            "Urvin\\Dbaudit\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "urvinsanghavi1",
-            "email": "urvin.sanghavi@viitor.cloud"
-        }
-    ],
-    "minimum-stability": "dev",
-    "require": {}
+  "name": "vcian/laravel-db-playground",
+  "description": "Dynamic import csv file to database through db table column mapping.",
+  "keywords": [
+    "laravel"
+  ],
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Vcian - ViitorCloud",
+      "homepage": "https://github.com/vcian",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Vcian\\LaravelDBPlayground\\": "src/"
+    }
+  },
+  "minimum-stability": "dev",
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Vcian\\LaravelDBPlayground\\Providers\\DBAuditServiceProvider"
+      ]
+    }
+  },
+  "require-dev": {
+    "laravel/pint": "dev-main"
+  }
 }

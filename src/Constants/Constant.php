@@ -1,6 +1,6 @@
 <?php
 
-namespace dbplayground\Constants;
+namespace Vcian\LaravelDBPlayground\Constants;
 
 /**
  * Class Constants
