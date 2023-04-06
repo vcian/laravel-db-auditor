@@ -1,0 +1,18 @@
+{
+    "name": "urvin/dbaudit",
+    "description": "Database Audit",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Urvin\\Dbaudit\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "urvinsanghavi1",
+            "email": "urvin.sanghavi@viitor.cloud"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
