@@ -1,6 +1,6 @@
 {
   "name": "vcian/laravel-db-playground",
-  "description": "Dynamic import csv file to database through db table column mapping.",
+  "description": "Database Playground provide leverage to audit your MySql database standards.",
   "keywords": [
     "laravel"
   ],
