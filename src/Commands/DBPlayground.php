@@ -57,19 +57,27 @@ class DBPlayground extends Command
 
             if ($tableName) {
                 $results = $auditService->checkConstrain($tableName, $userInput);
+                render(view('DBPlayground::playground', ['tables' => $results]));
+
+                $checkUserHasFields = $auditService->getFieldByUserInput($tableName);
+                // print_r($checkUserHasFields);exit;
+                if ($checkUserHasFields) {
+                    $userSelection = $this->choice('Do you want to add constrain into your table?', ['Yes', 'No']);
+                    if ($userSelection == "Yes") {
+                        $selectConstrain = $this->choice("Please select constrain which you want process", [Constant::CONSTRAIN_INDEX_KEY, Constant::CONSTRAIN_UNIQUE_KEY, Constant::CONSTRAIN_FOREIGN_KEY]);
+                        $selectField = $this->choice("Please Select Field where you want to apply " . strtolower($selectConstrain), $checkUserHasFields);
+                        $auditService->addConstrain($tableName, $selectField, $selectConstrain);
+                        render('<div class="w-100 px-1 p-1 bg-green-600 text-center">Run Successfully</div>');
+                    }
+                }
             } else {
                 $results = $auditService->getList($userInput);
+                render(view('DBPlayground::playground', ['tables' => $results]));
             }
 
             if (!$results) {
                 return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
             }
-
-            return render(
-                view('DBPlayground::playground', [
-                    'tables' => $results,
-                ])
-            );
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
             return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">' . $exception->getMessage() . '</div>');

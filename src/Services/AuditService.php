@@ -146,13 +146,11 @@ class AuditService
     /**
      * Get Field List By User Input
      */
-    public function getFieldByUserInput(string $tableName, string $inputKey)
+    public function getFieldByUserInput(string $tableName)
     {
         $fields = Constant::ARRAY_DECLARATION;
         try {
-            if ($inputKey === Constant::CONSTRAIN_PRIMARY_KEY) {
-                $fields = $this->getFields($tableName, "int", $inputKey);
-            }
+            $fields = $this->getFields($tableName, "int");
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
@@ -163,7 +161,7 @@ class AuditService
     /**
      * Get Fields
      */
-    public function getFields($tableName, $type, $inputKey)
+    public function getFields($tableName, $type)
     {
         $fieldList = Constant::ARRAY_DECLARATION;
         $fieldType = $this->dBConnectionService->getFieldWithType($tableName);
@@ -182,13 +180,18 @@ class AuditService
     /**
      * Add Constrain
      */
-    public function addConstrain($table, $field)
+    public function addConstrain($table, $field, $constrain)
     {
         try {
-            $query = "ALTER TABLE " . $table . " ADD PRIMARY KEY(" . $field . ")";
+            $query = "ALTER TABLE " . $table . " ADD " . $constrain . "";
+            if ($constrain == Constant::CONSTRAIN_INDEX_KEY) {
+                $query .= " " . $field . "_" . strtolower($constrain);
+            }
+            $query .= " (" . $field . ")";
             DB::select($query);
             return true;
         } catch (Exception $exception) {
+            return $exception->getMessage();
             Log::error($exception->getMessage());
         }
     }
@@ -198,7 +201,7 @@ class AuditService
      */
     public function getConstrainFields($table, $fieldName)
     {
-        $result = DB::select("SHOW KEYS FROM {$table} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
+        $result = DB::select("SHOW KEYS FROM {$table} WHERE Key_name LIKE '%" . strtolower($fieldName) . "%'");
         if ($result) {
             return true;
         }
