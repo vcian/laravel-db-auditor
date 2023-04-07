@@ -1,4 +1,4 @@
-<div class="sm:m-1">
+<div class="w-16 md:w-32 lg:w-48 m-1">
 
 
     @foreach ($tables as $key => $table)

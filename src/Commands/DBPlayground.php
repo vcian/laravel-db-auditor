@@ -32,7 +32,6 @@ class DBPlayground extends Command
     public function handle(AuditService $auditService)
     {
         try {
-
             $tableName = $this->argument('table');
 
             $results = Constant::ARRAY_DECLARATION;
@@ -54,22 +53,10 @@ class DBPlayground extends Command
                 Constant::HEADER_TITLE_COLUMN_NAME,
                 $userInput . ' ' . Constant::HEADER_TITLE_CONSTRAIN
             ];
-
             $auditService->setHeaders($header);
 
             if ($tableName) {
-                // $results = $auditService->checkConstrain($tableName, $userInput);
-                $fields = $auditService->getFieldByUserInput($tableName, $userInput);
-                if(!$fields) {
-                    return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">You can not add key because there is no field available to apply '. strtolower($userInput).' key.</div>');
-                }
-                // $fieldSelect = $this->choice(
-                //     'PLEASE SELECT FIELD YOU WANT TO ADD '.$userInput,
-                //     $fields
-                // );
-                // $table = $auditService->addConstrain($tableName, $fieldSelect);
-                print_r($fields);
-                exit;
+                $results = $auditService->checkConstrain($tableName, $userInput);
             } else {
                 $results = $auditService->getList($userInput);
             }
@@ -78,7 +65,11 @@ class DBPlayground extends Command
                 return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
             }
 
-            $this->table($auditService->getHeaders(), $results);
+            return render(
+                view('DBPlayground::playground', [
+                    'tables' => $results,
+                ])
+            );
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
             return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">' . $exception->getMessage() . '</div>');

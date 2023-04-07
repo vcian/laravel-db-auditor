@@ -15,9 +15,9 @@ class AuditService
 
     protected $tableList;
 
-    public function __construct(DBConnectionService $dBConnectionService)
+    public function __construct(protected DBConnectionService $dBConnectionService)
     {
-        $this->tableList = $dBConnectionService->getTableList();
+        $this->tableList = $this->dBConnectionService->getTableList();
     }
 
     /**
@@ -28,7 +28,7 @@ class AuditService
     public function getList($input): array
     {
         try {
-            if($this->tableList) {
+            if ($this->tableList) {
                 foreach ($this->tableList as $tableName) {
                     $this->checkConstrain($tableName, $input);
                 }
@@ -127,19 +127,81 @@ class AuditService
      * @param string $tableName
      * @param string $input
      */
-    public function getTableList(string $tableName, string $input) {
+    public function getTableList(string $tableName, string $input)
+    {
 
         try {
-            
+
             $checkTableStatus = Constant::ARRAY_DECLARATION;
-            if(in_array($checkTableStatus, $this->tableList)) {
+            if (in_array($checkTableStatus, $this->tableList)) {
                 return true;
             }
-
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
 
         return true;
+    }
+
+    /**
+     * Get Field List By User Input
+     */
+    public function getFieldByUserInput(string $tableName, string $inputKey)
+    {
+        $fields = Constant::ARRAY_DECLARATION;
+        try {
+            if ($inputKey === Constant::CONSTRAIN_PRIMARY_KEY) {
+                $fields = $this->getFields($tableName, "int", $inputKey);
+            }
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Get Fields
+     */
+    public function getFields($tableName, $type, $inputKey)
+    {
+        $fieldList = Constant::ARRAY_DECLARATION;
+        $fieldType = $this->dBConnectionService->getFieldWithType($tableName);
+        if ($fieldType) {
+            foreach ($fieldType as $field) {
+                if (str_contains($field->Type, $type)) {
+                    if (!$this->getConstrainFields($tableName, $field->Field)) {
+                        array_push($fieldList, $field->Field);
+                    }
+                }
+            }
+        }
+        return $fieldList;
+    }
+
+    /**
+     * Add Constrain
+     */
+    public function addConstrain($table, $field)
+    {
+        try {
+            $query = "ALTER TABLE " . $table . " ADD PRIMARY KEY(" . $field . ")";
+            DB::select($query);
+            return true;
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+    }
+
+    /**
+     * Field Exist
+     */
+    public function getConstrainFields($table, $fieldName)
+    {
+        $result = DB::select("SHOW KEYS FROM {$table} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
+        if ($result) {
+            return true;
+        }
+        return false;
     }
 }

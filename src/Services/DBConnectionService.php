@@ -71,5 +71,20 @@ class DBConnectionService
         return false;
     }
 
+    /**
+     * Get Field With Type By Table
+     * @param string $tableName
+     */
+    public function getFieldWithType(string $tableName)
+    {
+        $fieldsWithType = Constant::ARRAY_DECLARATION;
+        try {
+            $fieldsWithType = DB::select('Describe '. $tableName);
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return $fieldsWithType;
+    }
+
     
 }
