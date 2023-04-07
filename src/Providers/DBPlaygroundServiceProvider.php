@@ -4,11 +4,11 @@ namespace Vcian\LaravelDBPlayground\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
-class DBAuditServiceProvider extends ServiceProvider
+class DBPlaygroundServiceProvider extends ServiceProvider
 {
 
     protected $commands = [
-        'Vcian\LaravelDBPlayground\Commands\DBAuditCommand',
+        'Vcian\LaravelDBPlayground\Commands\DBPlayground',
         'Vcian\LaravelDBPlayground\Commands\DBStandardCommand'
     ];
     /**

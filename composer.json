@@ -25,7 +25,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Vcian\\LaravelDBPlayground\\Providers\\DBAuditServiceProvider"
+        "Vcian\\LaravelDBPlayground\\Providers\\DBPlaygroundServiceProvider"
       ]
     }
   },

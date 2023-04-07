@@ -4,15 +4,13 @@ namespace Vcian\LaravelDBPlayground\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use PHPUnit\Framework\Constraint\Constraint;
 use Vcian\LaravelDBPlayground\Constants\Constant;
 use Vcian\LaravelDBPlayground\Services\AuditService;
 
 use function Termwind\{render};
 
-class DBAuditCommand extends Command
+class DBPlayground extends Command
 {
     /**
      * The name and signature of the console command.
@@ -60,7 +58,18 @@ class DBAuditCommand extends Command
             $auditService->setHeaders($header);
 
             if ($tableName) {
-                $results = $auditService->checkConstrain($tableName, $userInput);
+                // $results = $auditService->checkConstrain($tableName, $userInput);
+                $fields = $auditService->getFieldByUserInput($tableName, $userInput);
+                if(!$fields) {
+                    return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">You can not add key because there is no field available to apply '. strtolower($userInput).' key.</div>');
+                }
+                // $fieldSelect = $this->choice(
+                //     'PLEASE SELECT FIELD YOU WANT TO ADD '.$userInput,
+                //     $fields
+                // );
+                // $table = $auditService->addConstrain($tableName, $fieldSelect);
+                print_r($fields);
+                exit;
             } else {
                 $results = $auditService->getList($userInput);
             }
