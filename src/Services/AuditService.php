@@ -11,8 +11,6 @@ class AuditService
 {
     protected $results = Constant::ARRAY_DECLARATION;
 
-    protected $headers = Constant::ARRAY_DECLARATION;
-
     protected $tableList;
 
     public function __construct(protected DBConnectionService $dBConnectionService)
@@ -48,6 +46,9 @@ class AuditService
     public function checkConstrain(string $tableName, string $input): array
     {
         try {
+            if (!$this->dBConnectionService->checkTableExist($tableName)) {
+                return [];
+            }
 
             if ($input === Constant::CONSTRAIN_ALL_KEY) {
                 $result = DB::select("SHOW KEYS FROM {$tableName}");
@@ -75,29 +76,6 @@ class AuditService
     }
 
     /**
-     * Set Display Headers
-     * @param array
-     * @return void
-     */
-    public function setHeaders(mixed $headers): void
-    {
-        if (is_array($headers)) {
-            $this->headers = $headers;
-        } else {
-            array_push($this->headers, $headers);
-        }
-    }
-
-    /**
-     * Get Display Headers
-     * @return array
-     */
-    public function getHeaders(): array
-    {
-        return $this->headers;
-    }
-
-    /**
      * Add Foreign Key
      * @param string
      * @return void
@@ -112,10 +90,8 @@ class AuditService
 
             if ($resultForeignKey) {
                 foreach ($resultForeignKey as $value) {
-                    array_push($this->results, [$value->TABLE_NAME, $value->COLUMN_NAME, Constant::CONSTRAIN_FOREIGN_KEY, $value->REFERENCED_TABLE_NAME, $value->REFERENCED_COLUMN_NAME]);
+                    array_push($this->results, [$value->TABLE_NAME, $value->Constant::CONSTRAIN_FOREIGN_KEY, $value->REFERENCED_TABLE_NAME, $value->REFERENCED_COLUMN_NAME]);
                 }
-                $this->setHeaders(Constant::HEADER_TITLE_REFERENCED_TABLE_NAME);
-                $this->setHeaders(Constant::HEADER_TITLE_REFERENCED_COLUMN_NAME);
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -146,28 +122,16 @@ class AuditService
     /**
      * Get Field List By User Input
      */
-    public function getFieldByUserInput(string $tableName)
-    {
-        $fields = Constant::ARRAY_DECLARATION;
-        try {
-            $fields = $this->getFields($tableName, "int");
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-
-        return $fields;
-    }
-
-    /**
-     * Get Fields
-     */
-    public function getFields($tableName, $type)
+    public function getFieldByUserInput(string $tableName, string $userInput)
     {
         $fieldList = Constant::ARRAY_DECLARATION;
+        if ($userInput === Constant::CONSTRAIN_PRIMARY_KEY && $this->checkTableHasPrimaryKey($tableName)) {
+            return $fieldList;
+        }
         $fieldType = $this->dBConnectionService->getFieldWithType($tableName);
         if ($fieldType) {
             foreach ($fieldType as $field) {
-                if (str_contains($field->Type, $type)) {
+                if (str_contains($field->Type, "int")) {
                     if (!$this->getConstrainFields($tableName, $field->Field)) {
                         array_push($fieldList, $field->Field);
                     }
@@ -180,18 +144,34 @@ class AuditService
     /**
      * Add Constrain
      */
-    public function addConstrain($table, $field, $constrain)
+    public function addConstrain($table, $field, $constrain, $referenceTableName = null, $referenceField = null)
     {
         try {
-            $query = "ALTER TABLE " . $table . " ADD " . $constrain . "";
-            if ($constrain == Constant::CONSTRAIN_INDEX_KEY) {
-                $query .= " " . $field . "_" . strtolower($constrain);
+            $query = "ALTER TABLE " . $table . " ADD ";
+
+
+            if ($constrain == Constant::CONSTRAIN_PRIMARY_KEY) {
+                $query .= $constrain . " KEY  (" . $field . ")";
             }
-            $query .= " (" . $field . ")";
+
+            if ($constrain == Constant::CONSTRAIN_INDEX_KEY || $constrain == Constant::CONSTRAIN_UNIQUE_KEY || $constrain == Constant::CONSTRAIN_FOREIGN_KEY) {
+                if ($constrain == Constant::CONSTRAIN_FOREIGN_KEY) {
+                    $query .= "CONSTRAINT fk_" . $field . "_" . strtolower(Constant::CONSTRAIN_INDEX_KEY) . " ";
+
+                    if (!$this->dBConnectionService->checkTableExist($referenceTableName)) {
+                        return false;
+                    }
+
+                    $query .= $constrain . " KEY ( " . $referenceField . " ) REFERENCES " . $referenceTableName . "  (" . $field . ")";
+                } else {
+                    $query .= $constrain . " " . $field . "_" . strtolower($constrain) . "  (" . $field . ")";
+                }
+            }
+
             DB::select($query);
+
             return true;
         } catch (Exception $exception) {
-            return $exception->getMessage();
             Log::error($exception->getMessage());
         }
     }
@@ -201,7 +181,19 @@ class AuditService
      */
     public function getConstrainFields($table, $fieldName)
     {
-        $result = DB::select("SHOW KEYS FROM {$table} WHERE Key_name LIKE '%" . strtolower($fieldName) . "%'");
+        $result = DB::select("SHOW KEYS FROM {$table} WHERE Column_name LIKE '%" . strtolower($fieldName) . "%'");
+        if ($result) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check Table Has Primary
+     */
+    public function checkTableHasPrimaryKey(string $tableName)
+    {
+        $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%primary%'");
         if ($result) {
             return true;
         }
