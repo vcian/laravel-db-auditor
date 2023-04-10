@@ -37,4 +37,9 @@ class Constant
     public const TABLE_RULES = 'table';
     public const FIELD_RULES = 'field';
 
+    public const INDEX_FILE_NAME = 'update_table_index.php';
+    public const UNIQUE_FILE_NAME = 'update_table_unique.php';
+    public const PRIMARY_FILE_NAME = 'update_table_primary.php';
+    public const FOREIGN_FILE_NAME = 'update_table_foreign.php';
+
 }

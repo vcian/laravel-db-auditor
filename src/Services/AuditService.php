@@ -3,7 +3,9 @@
 namespace Vcian\LaravelDBPlayground\Services;
 
 use Exception;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBPlayground\Constants\Constant;
 
@@ -147,28 +149,18 @@ class AuditService
     public function addConstrain($table, $field, $constrain, $referenceTableName = null, $referenceField = null)
     {
         try {
-            $query = "ALTER TABLE " . $table . " ADD ";
-
-
             if ($constrain == Constant::CONSTRAIN_PRIMARY_KEY) {
-                $query .= $constrain . " KEY  (" . $field . ")";
-            }
-
-            if ($constrain == Constant::CONSTRAIN_INDEX_KEY || $constrain == Constant::CONSTRAIN_UNIQUE_KEY || $constrain == Constant::CONSTRAIN_FOREIGN_KEY) {
-                if ($constrain == Constant::CONSTRAIN_FOREIGN_KEY) {
-                    $query .= "CONSTRAINT fk_" . $field . "_" . strtolower(Constant::CONSTRAIN_INDEX_KEY) . " ";
-
-                    if (!$this->dBConnectionService->checkTableExist($referenceTableName)) {
-                        return false;
-                    }
-
-                    $query .= $constrain . " KEY ( " . $referenceField . " ) REFERENCES " . $referenceTableName . "  (" . $field . ")";
-                } else {
-                    $query .= $constrain . " " . $field . "_" . strtolower($constrain) . "  (" . $field . ")";
+                $this->migrateConstrain(Constant::PRIMARY_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
+            } elseif ($constrain == Constant::CONSTRAIN_INDEX_KEY ) {
+                $this->migrateConstrain(Constant::INDEX_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
+            } elseif ($constrain == Constant::CONSTRAIN_UNIQUE_KEY) {
+                $this->migrateConstrain(Constant::UNIQUE_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
+            } elseif ($constrain == Constant::CONSTRAIN_FOREIGN_KEY) {
+                if (!$this->dBConnectionService->checkTableExist($referenceTableName)) {
+                    return false;
                 }
+                $this->migrateConstrain(Constant::FOREIGN_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
             }
-
-            DB::select($query);
 
             return true;
         } catch (Exception $exception) {
@@ -198,5 +190,33 @@ class AuditService
             return true;
         }
         return false;
+    }
+
+    public function migrateConstrain($fileName, $tableName, $fieldName, $referenceField = null, $referenceTableName = null)
+    {   
+        try {
+            $stubVariables = [
+                "table_name" => $tableName,
+                "field_name" => $fieldName,
+                "reference_field" => $referenceField,
+                "reference_table" => $referenceTableName
+            ];
+    
+            $contents = file_get_contents(__DIR__."/../database/".Constant::INDEX_FILE_NAME);
+    
+            foreach ($stubVariables as $search => $replace)
+            {
+                $contents = str_replace('$'.$search , "'$replace'", $contents);
+            }
+    
+            File::put(database_path("/migrations/update_".$tableName."_".$fieldName."_index.php"), $contents);
+    
+            Artisan::call("migrate", [
+                '--path' => "database/migrations/update_".$tableName."_".$fieldName."_index.php"
+            ]);
+
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
     }
 }
