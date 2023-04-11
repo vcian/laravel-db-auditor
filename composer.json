@@ -1,5 +1,5 @@
 {
-  "name": "vcian/laravel-db-playground",
+  "name": "vcian/laravel-db-auditor",
   "description": "Database Playground provide leverage to audit your MySql database standards.",
   "keywords": [
     "laravel"
