@@ -10,11 +10,12 @@
     {
       "name": "Vcian - ViitorCloud",
       "homepage": "https://github.com/vcian",
-      "role": "Developer"
+      "role": "Creator"
     }
   ],
   "require": {
-    "php": "^8.0"
+    "php": "^8.0",
+    "doctrine/dbal": "4.0.x-dev"
   },
   "autoload": {
     "psr-4": {
