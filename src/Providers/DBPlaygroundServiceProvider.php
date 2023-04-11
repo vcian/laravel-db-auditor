@@ -24,6 +24,6 @@ class DBPlaygroundServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadViewsFrom(__DIR__.'/../views', 'DBPlayground');
+        $this->loadViewsFrom(__DIR__ . '/../Views', 'DBPlayground');
     }
 }

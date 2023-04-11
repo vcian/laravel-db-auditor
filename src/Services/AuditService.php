@@ -85,10 +85,10 @@ class AuditService
     public function checkForeignKeyData(string $tableName): void
     {
         try {
-            $resultForeignKey = DB::select("SELECT i.TABLE_SCHEMA, i.TABLE_NAME, i.CONSTRAINT_TYPE,k.COLUMN_NAME, i.CONSTRAINT_NAME, 
-            k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i 
-            LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME 
-            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . config("database.connections.mysql.database") . "' AND i.TABLE_NAME = '" . $tableName . "'");
+            $resultForeignKey = DB::select("SELECT i.TABLE_SCHEMA, i.TABLE_NAME, i.CONSTRAINT_TYPE,k.COLUMN_NAME, i.CONSTRAINT_NAME,
+            k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i
+            LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . config("Database.connections.mysql.Database") . "' AND i.TABLE_NAME = '" . $tableName . "'");
 
             if ($resultForeignKey) {
                 foreach ($resultForeignKey as $value) {
@@ -193,7 +193,7 @@ class AuditService
     }
 
     public function migrateConstrain($fileName, $tableName, $fieldName, $referenceField = null, $referenceTableName = null)
-    {   
+    {
         try {
             $stubVariables = [
                 "table_name" => $tableName,
@@ -201,18 +201,18 @@ class AuditService
                 "reference_field" => $referenceField,
                 "reference_table" => $referenceTableName
             ];
-    
-            $contents = file_get_contents(__DIR__."/../database/".Constant::INDEX_FILE_NAME);
-    
+
+            $contents = file_get_contents(__DIR__ . "/../Database/migrations" .Constant::INDEX_FILE_NAME);
+
             foreach ($stubVariables as $search => $replace)
             {
                 $contents = str_replace('$'.$search , "'$replace'", $contents);
             }
-    
+
             File::put(database_path("/migrations/update_".$tableName."_".$fieldName."_index.php"), $contents);
-    
+
             Artisan::call("migrate", [
-                '--path' => "database/migrations/update_".$tableName."_".$fieldName."_index.php"
+                '--path' => "Database/migrations/update_".$tableName."_".$fieldName."_index.php"
             ]);
 
         } catch (Exception $exception) {
