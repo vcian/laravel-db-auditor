@@ -1,8 +1,13 @@
 {
   "name": "vcian/laravel-db-auditor",
-  "description": "Database Playground provide leverage to audit your MySql database standards.",
+  "description": "Database DB Auditor provide leverage to audit your MySql database standards and also provide options to add constraints in table.",
   "keywords": [
-    "laravel"
+    "Laravel",
+    "MySql",
+    "DB Audit",
+    "Database",
+    "DB Standards",
+    "DB Constraints"
   ],
   "type": "library",
   "license": "MIT",
