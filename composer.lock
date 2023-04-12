@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a093ed35e2357dfc8b4ccbc800a519f2",
+    "content-hash": "9d872cf48a852ac572c5b310210bed84",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -269,12 +269,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/pint.git",
-                "reference": "e033004fec425aa5473e6ffe6a23391236abb6e0"
+                "reference": "0a1b99750fc1ad53e75586b6ffb0167201631ca6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/pint/zipball/e033004fec425aa5473e6ffe6a23391236abb6e0",
-                "reference": "e033004fec425aa5473e6ffe6a23391236abb6e0",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/0a1b99750fc1ad53e75586b6ffb0167201631ca6",
+                "reference": "0a1b99750fc1ad53e75586b6ffb0167201631ca6",
                 "shasum": ""
             },
             "require": {
@@ -328,12 +328,13 @@
                 "issues": "https://github.com/laravel/pint/issues",
                 "source": "https://github.com/laravel/pint"
             },
-            "time": "2023-04-07T08:05:26+00:00"
+            "time": "2023-04-11T10:52:02+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "doctrine/dbal": 20,
         "laravel/pint": 20
     },
     "prefer-stable": false,

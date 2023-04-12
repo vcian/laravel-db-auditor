@@ -30,7 +30,7 @@ class DBStandardCommand extends Command
         $tableName = $this->argument('table');
 
         if($tableName) {
-            $tableResult = $ruleService->tableRules($tableName);  
+            $tableResult = $ruleService->tableRules($tableName);
         } else {
             $tableResult = $ruleService->tablesRule();
         }
@@ -40,7 +40,7 @@ class DBStandardCommand extends Command
         }
 
         return render(
-            view('DBPlayground::standard', [
+            view('DBAuditor::standard', [
                 'tables' => $tableResult,
             ])
         );

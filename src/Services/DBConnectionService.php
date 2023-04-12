@@ -1,15 +1,15 @@
 <?php
 
-namespace Vcian\LaravelDBPlayground\Services;
+namespace Vcian\LaravelDBAuditor\Services;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Vcian\LaravelDBPlayground\Constants\Constant;
+use Vcian\LaravelDBAuditor\Constants\Constant;
 
 class DBConnectionService
 {
-    
+
     /**
      * Get Table List
      * @return array
@@ -60,7 +60,7 @@ class DBConnectionService
     {
         try {
             $tables = $this->getTableList();
-            
+
             if(in_array($tableName, $tables)) {
                 return true;
             }
@@ -86,5 +86,5 @@ class DBConnectionService
         return $fieldsWithType;
     }
 
-    
+
 }

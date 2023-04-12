@@ -1,8 +1,8 @@
 <?php
 
-namespace Vcian\LaravelDBPlayground\Services;
+namespace Vcian\LaravelDBAuditor\Services;
 
-use Vcian\LaravelDBPlayground\Constants\Constant;
+use Vcian\LaravelDBAuditor\Constants\Constant;
 use Illuminate\Support\Str;
 
 class NamingRuleService
