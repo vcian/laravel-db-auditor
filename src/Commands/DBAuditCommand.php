@@ -1,16 +1,16 @@
 <?php
 
-namespace Vcian\LaravelDBPlayground\Commands;
+namespace Vcian\LaravelDBAuditor\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Vcian\LaravelDBPlayground\Constants\Constant;
-use Vcian\LaravelDBPlayground\Services\AuditService;
+use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Services\AuditService;
 
 use function Termwind\{render};
 
-class DBPlayground extends Command
+class DBAuditCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -24,7 +24,7 @@ class DBPlayground extends Command
      *
      * @var string
      */
-    protected $description = 'Database Audit : Check the Constarain';
+    protected $description = 'Database Audit : Check the Constraint';
 
     /**
      * Execute the console command.
@@ -57,7 +57,7 @@ class DBPlayground extends Command
                 if (!$results) {
                     return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
                 }
-                render(view('DBPlayground::playground', ['tables' => $results]));
+                render(view('DBAuditor::constraint', ['tables' => $results]));
 
                 $checkUserHasFields = $auditService->getFieldByUserInput($tableName, $userInput);
                 if ($checkUserHasFields) {
@@ -68,12 +68,12 @@ class DBPlayground extends Command
                             if (!$auditService->checkTableHasPrimaryKey($tableName)) {
                                 array_push($options, Constant::CONSTRAIN_PRIMARY_KEY);
                             }
-                            $userInput = $this->choice("Please select constrain which you want process", $options);
+                            $userInput = $this->choice("Please select constraints which you want process", $options);
                         }
                         $selectField = $this->choice("Please Select Field where you want to apply " . strtolower($userInput) . " key", $checkUserHasFields);
                         if ($userInput === Constant::CONSTRAIN_FOREIGN_KEY) {
-                            $referenceTable = $this->ask("Please add refrence table name");
-                            $referenceField = $this->ask("Please add refrence table primary key name");
+                            $referenceTable = $this->ask("Please add reference table name");
+                            $referenceField = $this->ask("Please add reference table primary key name");
                         }
 
                         $auditService->addConstrain($tableName, $selectField, $userInput, $referenceTable, $referenceField);
@@ -85,7 +85,7 @@ class DBPlayground extends Command
                 if (!$results) {
                     return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
                 }
-                render(view('DBPlayground::playground', ['tables' => $results]));
+                render(view('DBAuditor::constraint', ['tables' => $results]));
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());

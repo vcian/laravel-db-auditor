@@ -1,13 +1,13 @@
 <?php
 
-namespace Vcian\LaravelDBPlayground\Services;
+namespace Vcian\LaravelDBAuditor\Services;
 
 use Exception;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Vcian\LaravelDBPlayground\Constants\Constant;
+use Vcian\LaravelDBAuditor\Constants\Constant;
 
 class AuditService
 {

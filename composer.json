@@ -24,14 +24,14 @@
   },
   "autoload": {
     "psr-4": {
-      "Vcian\\LaravelDBPlayground\\": "src/"
+      "Vcian\\LaravelDBAuditor\\": "src/"
     }
   },
   "minimum-stability": "dev",
   "extra": {
     "laravel": {
       "providers": [
-        "Vcian\\LaravelDBPlayground\\Providers\\DBPlaygroundServiceProvider"
+        "Vcian\\LaravelDBAuditor\\Providers\\DBAuditorServiceProvider"
       ]
     }
   },
