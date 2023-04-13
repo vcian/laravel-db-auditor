@@ -162,8 +162,9 @@ class RuleService
                 if (!$tableExist) {
                     return false;
                 }
-                $checkTableStatus[$tableName] = $this->checkRules($tableName, Constant::TABLE_RULES);
-                $checkTableStatus[$tableName]['fields'] = $this->fieldRules($tableName);
+                $fields = $this->fieldRules($tableName);
+                $tableComment = $this->checkRules($tableName, Constant::TABLE_RULES);
+                $checkTableStatus = ["table" => $tableName,  "table_comment" => $tableComment, "fields" => $fields];
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());

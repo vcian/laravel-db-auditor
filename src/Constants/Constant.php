@@ -45,4 +45,6 @@ class Constant
     public const STATUS_TRUE = true;
     public const STATUS_FALSE = false;
 
+    public const STANDARD_COMMAND = 'STANDARD';
+    public const CONSTRAIN_COMMAND = 'CONSTRAIN';
 }
