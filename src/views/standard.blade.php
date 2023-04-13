@@ -1,66 +1,17 @@
-<div class="w-16 md:w-32 lg:w-48 m-1">
-
-
-    @foreach ($tables as $key => $table)
-        {{-- Tables --}}
-
-        <div class="w-100 p-1 text-center sm:bg-green-400 text-black">
-            Table Name : <b>{{ $table['name'] }}</b>
-        </div>
-        @if (!empty($table['status']))
-            <table>
-                <thead>
-                    <tr>
-                        <th>Table Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($table['status'] as $status)
-                        <tr>
-                            <td class='text-red'>{{ $status }} </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
-
-        {{-- End Tables --}}
-
-
-        {{-- Fields --}}
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Field Name</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($table['fields'] as $field)
-                    <tr>
-                        @if ($field['status'])
-                            <td class='text-red'>{{ $field['name'] }}</td>
-                        @else
-                            <td>{{ $field['name'] }}</td>
-                        @endif
-                        @if ($field['status'])
-                            @foreach ($field['status'] as $status)
-                    <tr>
-                        <td></td>
-                        <td class='text-red'>{{ $status }}</td>
-                    </tr>
-                @endforeach
-            @else
-                <td class='text-green'> ✓ </td>
-    @endif
-    </tr>
-    @endforeach
-    </tbody>
-    </table>
-
-    {{-- End Fields --}}
-    @endforeach
-
-
+<div class="w-auto m-1">
+    <div class="mt-1"> 
+        <span class="font-bold text-green">Table Standard Check</span>
+        @foreach ($tableStatus as $table)
+            <div class="flex space-x-1"> <span>{{ $table['name'] }}</span> <i
+                    class="text-blue">({{ $table['size'] }} MB)</i> <span
+                    class="flex-1 content-repeat-[.] text-gray"></span>
+                @if ($table['status'])
+                    <b><span class="font-bold text-green">✓</span></b>
+                @else
+                    <b><span class="font-bold text-red">✗</span></b>
+                @endif
+            </div>
+        @endforeach
+        
+    </div>
 </div>

@@ -13,7 +13,7 @@ class DBStandardCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'db:standard {table?}';
+    protected $signature = 'db:standard';
 
     /**
      * The console command description.
@@ -27,22 +27,12 @@ class DBStandardCommand extends Command
      */
     public function handle(RuleService $ruleService)
     {
-        $tableName = $this->argument('table');
+        $tableStatus = $ruleService->tablesRule();
 
-        if($tableName) {
-            $tableResult = $ruleService->tableRules($tableName);
-        } else {
-            $tableResult = $ruleService->tablesRule();
-        }
-
-        if (!$tableResult) {
+        if (!$tableStatus) {
             return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
         }
-
-        return render(
-            view('DBAuditor::standard', [
-                'tables' => $tableResult,
-            ])
-        );
+        render( view('DBAuditor::standard', [ 'tableStatus' => $tableStatus ]) );
+        return self::SUCCESS;
     }
 }
