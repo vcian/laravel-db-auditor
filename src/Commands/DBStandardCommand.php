@@ -1,9 +1,9 @@
 <?php
 
-namespace Vcian\LaravelDBPlayground\Commands;
+namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
-use Vcian\LaravelDBPlayground\Services\RuleService;
+use Vcian\LaravelDBAuditor\Services\RuleService;
 use function Termwind\render;
 
 class DBStandardCommand extends Command

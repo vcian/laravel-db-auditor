@@ -24,6 +24,6 @@ class DBAuditorServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadViewsFrom(__DIR__ . '/../Views', 'DBAuditor');
+        $this->loadViewsFrom(__DIR__ . '/../views', 'DBAuditor');
     }
 }
