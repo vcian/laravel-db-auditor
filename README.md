@@ -1,5 +1,7 @@
 # Laravel DB Auditor
 
+![Packagist License](https://img.shields.io/packagist/l/vcian/laravel-db-auditor?style=for-the-badge)
+[![Total Downloads](https://img.shields.io/packagist/dt/vcian/laravel-db-auditor?style=for-the-badge)](https://packagist.org/packages/vcian/laravel-db-auditor)
 
 ## Introduction
 
@@ -20,13 +22,13 @@ composer require vcian/laravel-db-auditor
 
 You can access DB Auditor using below artisan commands.
 
-> #### php artisan db:audit
+> #### **php artisan db:audit**
 > 
 > This command give you result with list of table with standard follow indication.
 > 
 > You can also see table specific column name which doesn't have standard followed.
 
-> #### php artisan db:standard
+> #### **php artisan db:standard**
 > 
 > This command gives you result with list of tables with primary,foreign,unique,index constrain.
 > 

@@ -2,7 +2,7 @@
 
 Contributions are **welcome** and will be fully **credited**.
 
-We accept contributions via Pull Requests on [Github](https://github.com/vcian/laravel-data-bringin).
+We accept contributions via Pull Requests on [Github](https://github.com/vcian/laravel-db-auditor).
 
 Please read and understand the contribution guide before creating an issue or pull request.
 
