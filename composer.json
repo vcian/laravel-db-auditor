@@ -7,15 +7,15 @@
     "DB Audit",
     "Database",
     "DB Standards",
-    "DB Constraints"
+    "DB Constraints",
+    "Php"
   ],
   "type": "library",
   "license": "MIT",
   "authors": [
     {
       "name": "Vcian - ViitorCloud",
-      "homepage": "https://github.com/vcian",
-      "role": "Creator"
+      "homepage": "https://github.com/vcian"
     }
   ],
   "require": {
