@@ -31,7 +31,7 @@ class DBStandardCommand extends Command
         $tableStatus = $ruleService->tablesRule();
 
         if (!$tableStatus) {
-            return render('<div class="w-100 px-1 p-1 bg-red-600 text-center"> 🧐 No Table Found 😏 </div>');
+            return render('<div class="w-100 px-1 p-1 bg-red-600 text-center"> 😢 No Table Found 😩 </div>');
         }
 
         render(view('DBAuditor::standard', ['tableStatus' => $tableStatus]));
@@ -45,7 +45,7 @@ class DBStandardCommand extends Command
             $tableStatus = $ruleService->tableRules($tableName);
 
             if (!$tableStatus) {
-                render('<div class="w-120 px-2 p-1 bg-red-600 text-center"> 🧐 No Table Found 😏 </div>');
+                render('<div class="w-120 px-2 p-1 bg-red-600 text-center"> 😢 No Table Found 😩 </div>');
             } else {
                 render(view('DBAuditor::fail_standard_table', ['tableStatus' => $tableStatus]));
             }
