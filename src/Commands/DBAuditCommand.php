@@ -36,7 +36,7 @@ class DBAuditCommand extends Command
         }
 
         if ($commandSelect === Constant::CONSTRAIN_COMMAND) {
-            $this->call('db:constrain');
+            $this->call('db:constraint');
         }
     }
 }

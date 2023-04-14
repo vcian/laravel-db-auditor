@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table($table_name, function (Blueprint $table) {
-            $table->integer($field_name)->change()->unique();
+            $table->$dataType($field_name)->change()->unique();
         });
     }
 

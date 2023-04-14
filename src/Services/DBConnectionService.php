@@ -26,7 +26,6 @@ class DBConnectionService
                     foreach ($tableValue as $tableName) {
                         array_push($tableList, $tableName);
                     }
-
                 }
             }
         } catch (Exception $exception) {
@@ -43,8 +42,8 @@ class DBConnectionService
     {
         $fields = Constant::ARRAY_DECLARATION;
         try {
-            $fieldDetails = DB::select('Describe '. $tableName);
-            foreach($fieldDetails as $field) {
+            $fieldDetails = DB::select('Describe ' . $tableName);
+            foreach ($fieldDetails as $field) {
                 array_push($fields, $field->Field);
             }
         } catch (Exception $exception) {
@@ -61,7 +60,7 @@ class DBConnectionService
         try {
             $tables = $this->getTableList();
 
-            if(in_array($tableName, $tables)) {
+            if (in_array($tableName, $tables)) {
                 return true;
             }
         } catch (Exception $exception) {
@@ -75,16 +74,35 @@ class DBConnectionService
      * Get Field With Type By Table
      * @param string $tableName
      */
-    public function getFieldWithType(string $tableName)
+    public function getFieldsDetails(string $tableName)
     {
         $fieldsWithType = Constant::ARRAY_DECLARATION;
         try {
-            $fieldsWithType = DB::select('Describe '. $tableName);
+            $fieldsWithType = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+                            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' ");
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
         return $fieldsWithType;
     }
 
-
+    /**
+     * Get Table Size
+     * @param string $tableName
+     */
+    public function getTableSize(string $tableName)
+    {
+        try {
+            $query = 'SELECT 
+                    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024),2) AS `size` FROM information_schema.TABLES 
+                    WHERE 
+                        TABLE_SCHEMA = "' . env('DB_DATABASE') . '" AND TABLE_NAME = "' . $tableName . '" 
+                    ORDER BY 
+                        (DATA_LENGTH + INDEX_LENGTH) DESC';
+            $result = DB::select($query);
+            return $result[0]->size;
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+    }
 }

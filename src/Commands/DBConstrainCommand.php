@@ -9,6 +9,7 @@ use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Services\AuditService;
 
 use function Termwind\{render};
+use function Termwind\{renderUsing};
 
 class DBConstrainCommand extends Command
 {
@@ -17,7 +18,7 @@ class DBConstrainCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'db:constrain {table?}';
+    protected $signature = 'db:constraint {table?}';
 
     /**
      * The console command description.
@@ -32,64 +33,100 @@ class DBConstrainCommand extends Command
     public function handle(AuditService $auditService)
     {
         try {
-            $tableName = $this->argument('table');
 
-            $results = Constant::ARRAY_DECLARATION;
-
-            $referenceTable = null;
-            $referenceField = null;
-
-            $constrains = [
-                Constant::CONSTRAIN_PRIMARY_KEY,
-                Constant::CONSTRAIN_INDEX_KEY,
-                Constant::CONSTRAIN_UNIQUE_KEY,
-                Constant::CONSTRAIN_FOREIGN_KEY,
-                Constant::CONSTRAIN_ALL_KEY
-            ];
-
-            $userInput = $this->choice(
-                'Please Select',
-                $constrains
+            $tableName = $this->components->choice(
+                'Which table whould you like to audit?',
+                $auditService->getTablesList()
             );
 
+            $data = [
+                "table" => $tableName,
+                "size" => $auditService->getTableSize($tableName),
+                "fields" => $auditService->getTableFields($tableName),
+                'field_count' => count($auditService->getTableFields($tableName)),
+                'constrain' => [
+                    'primary' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_PRIMARY_KEY),
+                    'unique' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_UNIQUE_KEY),
+                    'foreign' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_FOREIGN_KEY),
+                    'index' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_INDEX_KEY)
+                ]
+            ];
+
+            render(view('DBAuditor::constraint', ['data' => $data]));
+
             if ($tableName) {
-                $results = $auditService->checkConstrain($tableName, $userInput);
-                if (!$results) {
-                    return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
-                }
-                render(view('DBAuditor::constraint', ['tables' => $results]));
 
-                $checkUserHasFields = $auditService->getFieldByUserInput($tableName, $userInput);
-                if ($checkUserHasFields) {
-                    $userSelection = $this->choice('Do you want to add constrain into your table?', ['Yes', 'No']);
-                    if ($userSelection == "Yes") {
-                        if ($userInput === Constant::CONSTRAIN_ALL_KEY) {
-                            $options = [Constant::CONSTRAIN_INDEX_KEY, Constant::CONSTRAIN_UNIQUE_KEY, Constant::CONSTRAIN_FOREIGN_KEY];
-                            if (!$auditService->checkTableHasPrimaryKey($tableName)) {
-                                array_push($options, Constant::CONSTRAIN_PRIMARY_KEY);
+                $continue = Constant::STATUS_TRUE;
+                do {
+
+                    $noConstrainfields = $auditService->getNoConstrainFields($tableName);
+                    $constrainList = $auditService->getConstrainList($tableName, $noConstrainfields);
+
+                    if ($noConstrainfields) {
+
+                        $userInput = $this->confirm("Do you want add more constrain?");
+
+                        if ($userInput) {
+
+                            $selectConstrain = $this->choice(
+                                'Please select constrain which you want to add',
+                                $constrainList
+                            );
+
+                            if ($selectConstrain === Constant::CONSTRAIN_PRIMARY_KEY || $selectConstrain === Constant::CONSTRAIN_FOREIGN_KEY) {
+                                $fields = $noConstrainfields['integer'];
+                            } else {
+                                $fields = $noConstrainfields['mix'];
                             }
-                            $userInput = $this->choice("Please select constraints which you want process", $options);
-                        }
-                        $selectField = $this->choice("Please Select Field where you want to apply " . strtolower($userInput) . " key", $checkUserHasFields);
-                        if ($userInput === Constant::CONSTRAIN_FOREIGN_KEY) {
-                            $referenceTable = $this->ask("Please add reference table name");
-                            $referenceField = $this->ask("Please add reference table primary key name");
-                        }
 
-                        $auditService->addConstrain($tableName, $selectField, $userInput, $referenceTable, $referenceField);
-                        render('<div class="w-100 px-1 p-1 bg-green-600 text-center">Run Successfully</div>');
+                            $selectField = $this->choice(
+                                'Please select field where you want to add ' . $selectConstrain,
+                                $fields
+                            );
+
+                            if ($selectConstrain === Constant::CONSTRAIN_FOREIGN_KEY) {
+                                $tableHasValue = $auditService->tableHasValue($tableName);
+
+                                if ($tableHasValue) {
+                                    render('<div class="w-120 px-2 p-1 bg-red-600 text-center"> 😢 Can not apply Foreign Key | Please trancate table 😎 </div>');
+                                } else {
+                                    $referenceTable = $this->ask("Please add foreign table name");
+                                    $referenceField = $this->ask("Please add foreign table primary key name");
+                                    $auditService->addConstrain($tableName, $selectField, $selectConstrain, $referenceTable, $referenceField);
+                                }
+                            }
+
+                            $auditService->addConstrain($tableName, $selectField, $selectConstrain);
+
+                            renderUsing($this->output);
+
+                            render('<div class="w-120 px-2 p-1 bg-green-600 text-center"> 😎 Constrain Add Successfully 😎 </div>');
+
+                            $data = [
+                                "table" => $tableName,
+                                "size" => $auditService->getTableSize($tableName),
+                                "fields" => $auditService->getTableFields($tableName),
+                                'field_count' => count($auditService->getTableFields($tableName)),
+                                'constrain' => [
+                                    'primary' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_PRIMARY_KEY),
+                                    'unique' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_UNIQUE_KEY),
+                                    'foreign' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_FOREIGN_KEY),
+                                    'index' => $auditService->getConstrainField($tableName, Constant::CONSTRAIN_INDEX_KEY)
+                                ]
+                            ];
+
+                            render(view('DBAuditor::constraint', ['data' => $data]));
+                        } else {
+                            $continue = Constant::STATUS_FALSE;
+                        }
+                    } else {
+                        $continue = Constant::STATUS_FALSE;
                     }
-                }
-            } else {
-                $results = $auditService->getList($userInput);
-                if (!$results) {
-                    return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
-                }
-                render(view('DBAuditor::constraint', ['tables' => $results]));
+                } while ($continue === Constant::STATUS_TRUE);
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
-            return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">' . $exception->getMessage() . '</div>');
+            return $exception->getMessage();
         }
 
         return self::SUCCESS;
