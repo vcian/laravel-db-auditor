@@ -42,4 +42,9 @@ class Constant
     public const PRIMARY_FILE_NAME = 'update_table_primary.php';
     public const FOREIGN_FILE_NAME = 'update_table_foreign.php';
 
+    public const STATUS_TRUE = true;
+    public const STATUS_FALSE = false;
+
+    public const STANDARD_COMMAND = 'STANDARD';
+    public const CONSTRAIN_COMMAND = 'CONSTRAIN';
 }

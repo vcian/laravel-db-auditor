@@ -1,9 +1,10 @@
 <?php
 
-namespace Vcian\LaravelDBPlayground\Commands;
+namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
-use Vcian\LaravelDBPlayground\Services\RuleService;
+use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Services\RuleService;
 use function Termwind\render;
 
 class DBStandardCommand extends Command
@@ -13,7 +14,7 @@ class DBStandardCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'db:standard {table?}';
+    protected $signature = 'db:standard';
 
     /**
      * The console command description.
@@ -27,22 +28,35 @@ class DBStandardCommand extends Command
      */
     public function handle(RuleService $ruleService)
     {
-        $tableName = $this->argument('table');
+        $tableStatus = $ruleService->tablesRule();
 
-        if($tableName) {
-            $tableResult = $ruleService->tableRules($tableName);
-        } else {
-            $tableResult = $ruleService->tablesRule();
+        if (!$tableStatus) {
+            return render('<div class="w-100 px-1 p-1 bg-red-600 text-center"> 😢 No Table Found 😩 </div>');
         }
 
-        if (!$tableResult) {
-            return render('<div class="w-100 px-1 p-1 bg-red-600 text-center">No Table Found</div>');
-        }
+        render(view('DBAuditor::standard', ['tableStatus' => $tableStatus]));
 
-        return render(
-            view('DBAuditor::standard', [
-                'tables' => $tableResult,
-            ])
-        );
+        $continue = Constant::STATUS_TRUE;
+
+        do {
+
+            $tableName = $this->ask('Please select table if you want to see the report');
+
+            $tableStatus = $ruleService->tableRules($tableName);
+
+            if (!$tableStatus) {
+                render('<div class="w-120 px-2 p-1 bg-red-600 text-center"> 😢 No Table Found 😩 </div>');
+            } else {
+                render(view('DBAuditor::fail_standard_table', ['tableStatus' => $tableStatus]));
+            }
+
+            $report = $this->confirm("Do you want see other table report?");
+
+            if (!$report) {
+                $continue = Constant::STATUS_FALSE;
+            }
+        } while ($continue === Constant::STATUS_TRUE);
+
+        return self::SUCCESS;
     }
 }

@@ -3,6 +3,7 @@
 namespace Vcian\LaravelDBAuditor\Services;
 
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 
@@ -30,18 +31,56 @@ class RuleService
      */
     public function tablesRule(): array
     {
-        $checkTableStatus = Constant::ARRAY_DECLARATION;
+        $checkTableStandard = Constant::ARRAY_DECLARATION;
         try {
             $tableList = $this->dBConnectionService->getTableList();
-
             foreach ($tableList as $tableName) {
-                $checkTableStatus[$tableName] = $this->checkRules($tableName, Constant::TABLE_RULES);
-                $checkTableStatus[$tableName]['fields'] = $this->fieldRules($tableName);
+                $status = $this->checkStatus($tableName);
+                $size = $this->getTableSize($tableName);
+                array_push($checkTableStandard, ["name" => $tableName, "status" => $status, "size" => $size]);
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        return $checkTableStatus;
+        return $checkTableStandard;
+    }
+
+    /**
+     * Check Status for Tables and Fields 
+     * @param string $tableName 
+     * @return string 
+     */
+    public function checkStatus(string $tableName): string
+    {
+        $status = Constant::STATUS_TRUE;
+        $tableCheck = $this->checkRules($tableName, Constant::TABLE_RULES);
+        if (!empty($tableCheck)) {
+            $status = Constant::STATUS_FALSE;
+        } else {
+            $filedsDetails = $this->fieldRules($tableName);
+            foreach ($filedsDetails as $field) {
+                if (!empty($field)) {
+                    $status = Constant::STATUS_FALSE;
+                }
+            }
+        }
+        return $status;
+    }
+
+    /**
+     * Get Table Size
+     * @param string $tableName
+     * @return string $size 
+     */
+    public function getTableSize(string $tableName)
+    {
+        try {
+            $query = 'SELECT ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024),2) AS `size` FROM information_schema.TABLES WHERE TABLE_SCHEMA = "' . env('DB_DATABASE') . '" AND TABLE_NAME = "' . $tableName . '" ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC';
+            $result = DB::select($query);
+            return $result[0]->size;
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
     }
 
     /**
@@ -55,7 +94,7 @@ class RuleService
         try {
             $filedsDetails = $this->dBConnectionService->getFields($tableName);
             foreach ($filedsDetails as $field) {
-                $checkFields[] = $this->checkRules($field, Constant::FIELD_RULES);
+                $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -82,31 +121,31 @@ class RuleService
                 $checkNamePlural = $this->namingRuleService->nameAlwaysPlural($name);
 
                 if (!$checkLength) {
-                    $messages[] = '✗ Names should be not more than 64 characters.';
+                    $messages[] = 'Names should be not more than 64 characters.';
                 }
 
                 if (!$checkNamePlural) {
-                    $messages[] = '✗ Use Table Name Plural.';
+                    $messages[] = 'Use Table Name Plural.';
                 }
             }
 
             if (!$checkSpace) {
-                $messages[] = '✗ Using space between words is not advised. Please Use Underscore.';
+                $messages[] = 'Using space between words is not advised. Please Use Underscore.';
             }
 
             if (!$checkAlphabets) {
-                $messages[] = '✗ Numbers are not for names! Please use alphabets for name.';
+                $messages[] = 'Numbers are not for names! Please use alphabets for name.';
             }
 
 
             if (!$checkLowerCase) {
-                $messages[] = '✗ Use lowercase MYSQL is case sensitive.';
+                $messages[] = 'Use lowercase MYSQL is case sensitive.';
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
 
-        return ["name" => $name, "status" => $messages];
+        return $messages;
     }
 
     /**
@@ -123,8 +162,9 @@ class RuleService
                 if (!$tableExist) {
                     return false;
                 }
-                $checkTableStatus[$tableName] = $this->checkRules($tableName, Constant::TABLE_RULES);
-                $checkTableStatus[$tableName]['fields'] = $this->fieldRules($tableName);
+                $fields = $this->fieldRules($tableName);
+                $tableComment = $this->checkRules($tableName, Constant::TABLE_RULES);
+                $checkTableStatus = ["table" => $tableName,  "table_comment" => $tableComment, "fields" => $fields];
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
