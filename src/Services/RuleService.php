@@ -145,9 +145,9 @@ class RuleService
     /**
      * Check rules for single table and check table exist or not
      * @param string $tableName
-     * @return array
+     * @return mixed
      */
-    public function tableRules($tableName): array
+    public function tableRules($tableName): mixed
     {
         $checkTableStatus = Constant::ARRAY_DECLARATION;
         try {
