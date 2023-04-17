@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
+use function Termwind\{render};
 
 class AuditService
 {
@@ -21,6 +22,102 @@ class AuditService
     }
 
     /**
+     * Get All Table List
+     * @return array
+     */
+    public function getTablesList() : array
+    {
+        return $this->tableList;
+    }
+
+    /**
+     * Get Table Fields
+     * @param string $tableName
+     * @return array
+     */
+    public function getTableFields(string $tableName) : array
+    {
+        try {
+            $fields = $this->dBConnectionService->getFieldsDetails($tableName);
+            return $fields;
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+    }
+
+    /**
+     * Get Table Size
+     * @param string $tableName
+     * @return string $size 
+     */
+    public function getTableSize(string $tableName)
+    {
+        $tableSize = $this->dBConnectionService->getTableSize($tableName);
+        return $tableSize;
+    }
+
+    /**
+     * Get Fields which has no constrain
+     * @param string $tableName
+     */
+    public function getNoConstrainFields($tableName)
+    {
+        $fields = Constant::ARRAY_DECLARATION;
+        try {
+            $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+            WHERE `TABLE_SCHEMA`= '".env('DB_DATABASE')."' AND `TABLE_NAME`= '".$tableName."' AND `COLUMN_KEY` = '' ");
+
+            foreach($fieldList as $field) {
+                if(str_contains($field->DATA_TYPE, "int")) {
+                    $fields['integer'][] = $field->COLUMN_NAME;  
+                } else {
+                    $fields['mix'][] = $field->COLUMN_NAME;
+                }
+            }
+
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return $fields;
+    }
+
+    /**
+     * Get Constrain List
+     * @return array
+     */
+    public function getConstrainList($tableName, $fields)
+    {
+        $constrainList = Constant::ARRAY_DECLARATION;
+        if(isset($fields['integer']) && !empty($fields['integer']))  {
+            array_push($constrainList, Constant::CONSTRAIN_FOREIGN_KEY);
+
+            $primary = $this->getConstrainField($tableName, Constant::CONSTRAIN_PRIMARY_KEY);
+            if(empty($primary)) {
+                array_push($constrainList, Constant::CONSTRAIN_PRIMARY_KEY);
+            }
+        }
+        array_push($constrainList, Constant::CONSTRAIN_INDEX_KEY);
+        array_push($constrainList, Constant::CONSTRAIN_UNIQUE_KEY);
+        return $constrainList;
+    }
+
+    /**
+     * Check Table Has Value
+     */
+    public function tableHasValue(string $tableName)
+    {
+        try {
+            $tableContainValue = DB::select("Select * from ".$tableName."");
+            if($tableContainValue) {
+                return true;
+            }
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return false;
+    }
+
+    /**
      * Get All the Constrains list with table name and column.
      * @param string $input
      * @return array
@@ -30,7 +127,7 @@ class AuditService
         try {
             if ($this->tableList) {
                 foreach ($this->tableList as $tableName) {
-                    $this->checkConstrain($tableName, $input);
+                    $this->getConstrainField($tableName, $input);
                 }
             }
         } catch (Exception $exception) {
@@ -45,59 +142,58 @@ class AuditService
      * @param string $input
      * @return array
      */
-    public function checkConstrain(string $tableName, string $input): array
+    public function getConstrainField(string $tableName, string $input)
     {
         try {
+            $constrainFields = Constant::ARRAY_DECLARATION;
             if (!$this->dBConnectionService->checkTableExist($tableName)) {
                 return [];
             }
 
-            if ($input === Constant::CONSTRAIN_ALL_KEY) {
-                $result = DB::select("SHOW KEYS FROM {$tableName}");
-                $this->checkForeignKeyData($tableName);
-            } else {
-                $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
-            }
+            $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
 
             if ($input == Constant::CONSTRAIN_FOREIGN_KEY) {
-                $this->checkForeignKeyData($tableName);
+                $foreignFieldDetails = $this->getForeignKeyDetails($tableName);
+                return $foreignFieldDetails;
             }
 
             if ($result) {
                 foreach ($result as $value) {
-                    array_push($this->results, [$tableName, $value->Column_name, $value->Key_name]);
+                    array_push($constrainFields, $value->Column_name);
                 }
-            } else {
-                array_push($this->results, [$tableName, Constant::DASH, Constant::DASH]);
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
 
-        return $this->results;
+        return $constrainFields;
     }
 
     /**
      * Add Foreign Key
      * @param string
-     * @return void
+     * @return array
      */
-    public function checkForeignKeyData(string $tableName): void
+    public function getForeignKeyDetails(string $tableName)
     {
+        $foreignFieldDetails = Constant::ARRAY_DECLARATION;
         try {
             $resultForeignKey = DB::select("SELECT i.TABLE_SCHEMA, i.TABLE_NAME, i.CONSTRAINT_TYPE,k.COLUMN_NAME, i.CONSTRAINT_NAME,
             k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i
             LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME
-            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . config("Database.connections.mysql.Database") . "' AND i.TABLE_NAME = '" . $tableName . "'");
-
+            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . env('DB_DATABASE') . "' AND i.TABLE_NAME = '" . $tableName . "'");
+            
             if ($resultForeignKey) {
                 foreach ($resultForeignKey as $value) {
-                    array_push($this->results, [$value->TABLE_NAME, $value->Constant::CONSTRAIN_FOREIGN_KEY, $value->REFERENCED_TABLE_NAME, $value->REFERENCED_COLUMN_NAME]);
+                    array_push($foreignFieldDetails, ["colum_name" => $value->COLUMN_NAME, 
+                                                    "foreign_table_name" => $value->REFERENCED_TABLE_NAME, 
+                                                    "foreign_colum_name" => $value->REFERENCED_COLUMN_NAME]);         
                 }
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
+        return $foreignFieldDetails;
     }
 
     /**
@@ -130,7 +226,7 @@ class AuditService
         if ($userInput === Constant::CONSTRAIN_PRIMARY_KEY && $this->checkTableHasPrimaryKey($tableName)) {
             return $fieldList;
         }
-        $fieldType = $this->dBConnectionService->getFieldWithType($tableName);
+        $fieldType = $this->dBConnectionService->getFieldsDetails($tableName);
         if ($fieldType) {
             foreach ($fieldType as $field) {
                 if (str_contains($field->Type, "int")) {
@@ -150,22 +246,23 @@ class AuditService
     {
         try {
             if ($constrain == Constant::CONSTRAIN_PRIMARY_KEY) {
-                $this->migrateConstrain(Constant::PRIMARY_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
+                $this->migrateConstrain(Constant::PRIMARY_FILE_NAME, $constrain, $table, $field);
             } elseif ($constrain == Constant::CONSTRAIN_INDEX_KEY ) {
-                $this->migrateConstrain(Constant::INDEX_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
+               $this->migrateConstrain(Constant::INDEX_FILE_NAME, $constrain, $table, $field);
             } elseif ($constrain == Constant::CONSTRAIN_UNIQUE_KEY) {
-                $this->migrateConstrain(Constant::UNIQUE_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
+                $this->migrateConstrain(Constant::UNIQUE_FILE_NAME, $constrain, $table, $field);
             } elseif ($constrain == Constant::CONSTRAIN_FOREIGN_KEY) {
-                if (!$this->dBConnectionService->checkTableExist($referenceTableName)) {
-                    return false;
-                }
-                $this->migrateConstrain(Constant::FOREIGN_FILE_NAME, $table, $field, $referenceField, $referenceTableName);
+                $this->migrateConstrain(Constant::FOREIGN_FILE_NAME, $constrain, $table, $field, $referenceField, $referenceTableName);
+            } else {
+                return false;
             }
-
-            return true;
+            
+            
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
+        
+        return true;
     }
 
     /**
@@ -192,28 +289,75 @@ class AuditService
         return false;
     }
 
-    public function migrateConstrain($fileName, $tableName, $fieldName, $referenceField = null, $referenceTableName = null)
+    /**
+     * Dynamic Migration
+     */
+    public function migrateConstrain($fileName, $constrainName, $tableName, $fieldName, $referenceField = null, $referenceTableName = null)
     {
         try {
+            
+            $dataType = $this->getFieldDataType($tableName, $fieldName);
+
+            if($dataType) {
+                if($dataType === "varchar") {
+                    $fieldDataType = "string";
+                } else {
+                    $fieldDataType = $dataType;
+                }
+            }
+            
             $stubVariables = [
-                "table_name" => $tableName,
-                "field_name" => $fieldName,
-                "reference_field" => $referenceField,
-                "reference_table" => $referenceTableName
+                "tableName" => $tableName,
+                "fieldName" => $fieldName,
+                "referenceField" => $referenceField,
+                "referenceTable" => $referenceTableName,
+                "dataType" => $fieldDataType
             ];
 
-            $contents = file_get_contents(__DIR__ . "/../Database/migrations" .Constant::INDEX_FILE_NAME);
+            $contents = file_get_contents(__DIR__ . "/../Database/migrations/" .$fileName);
 
             foreach ($stubVariables as $search => $replace)
             {
-                $contents = str_replace('$'.$search , "'$replace'", $contents);
+                if($search === "dataType") {
+                    $contents = str_replace('$'.$search , $replace, $contents);
+                } else {
+                    $contents = str_replace('$'.$search , "'$replace'", $contents);
+                }
+                
             }
+            $time = time();
 
-            File::put(database_path("/migrations/update_".$tableName."_".$fieldName."_index.php"), $contents);
-
-            Artisan::call("migrate", [
-                '--path' => "Database/migrations/update_".$tableName."_".$fieldName."_index.php"
+            File::put(database_path("/migrations/".$time."_update_".$tableName."_".$fieldName."_".strtolower($constrainName).".php"), $contents);
+        
+            $data = Artisan::call("migrate", [
+                '--force' => true,
+                '--path' => "database/migrations/".$time."_update_".$tableName."_".$fieldName."_".strtolower($constrainName).".php"
             ]);
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+
+        return true;
+    }
+
+    /**
+     * Get Field Data Type
+     * @param string
+     * @param string
+     */
+    public function getFieldDataType(string $tableName, string $fieldName)
+    {
+        try {
+            
+            $dataType = DB::select("SELECT `DATA_TYPE` FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+            WHERE `TABLE_SCHEMA`= '".env('DB_DATABASE')."' AND `TABLE_NAME`= '".$tableName."' AND `COLUMN_NAME` = '".$fieldName."' ");
+    
+            if(isset($dataType[0]->DATA_TYPE) && $dataType[0]->DATA_TYPE !== null) {
+                return $dataType[0]->DATA_TYPE;
+            } else {
+                return false;
+            }
+            
 
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
