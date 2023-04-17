@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table($table_name, function (Blueprint $table) {
-            $table->foreign($field_name)->references($reference_field)->on($reference_table);
+        Schema::table($tableName, function (Blueprint $table) {
+            $table->foreign($fieldName)->references($reference_field)->on($reference_table);
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table($table_name, function (Blueprint $table) {
+        Schema::table($tableName, function (Blueprint $table) {
             //
         });
     }

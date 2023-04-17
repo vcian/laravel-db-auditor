@@ -36,9 +36,10 @@ class DBConnectionService
 
     /**
      * Get list of datatype of field and name of the field by table name
-     * @param string
+     * @param string $tableName
+     * @return array $fields
      */
-    public function getFields(string $tableName)
+    public function getFields(string $tableName): array
     {
         $fields = Constant::ARRAY_DECLARATION;
         try {
@@ -53,44 +54,47 @@ class DBConnectionService
     }
 
     /**
-     * Check Table exist or not
+     * Check Table exist or not in the database
+     * @param string $tableName
+     * @return bool
      */
-    public function checkTableExist($tableName)
+    public function checkTableExist(string $tableName): bool
     {
         try {
             $tables = $this->getTableList();
 
             if (in_array($tableName, $tables)) {
-                return true;
+                return Constant::STATUS_TRUE;
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-
-        return false;
+        return Constant::STATUS_FALSE;
     }
 
     /**
-     * Get Field With Type By Table
+     * Get field with type by table
      * @param string $tableName
+     * @return array
      */
-    public function getFieldsDetails(string $tableName)
+    public function getFieldsDetails(string $tableName): array
     {
-        $fieldsWithType = Constant::ARRAY_DECLARATION;
+        $fieldWithType = Constant::ARRAY_DECLARATION;
         try {
-            $fieldsWithType = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+            $fieldWithType = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS` 
                             WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' ");
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        return $fieldsWithType;
+        return $fieldWithType;
     }
 
     /**
      * Get Table Size
      * @param string $tableName
+     * @return string
      */
-    public function getTableSize(string $tableName)
+    public function getTableSize(string $tableName): string
     {
         try {
             $query = 'SELECT 

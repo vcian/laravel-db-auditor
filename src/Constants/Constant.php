@@ -12,21 +12,12 @@ class Constant
 
     public const DASH = " - ";
 
-    //constrain list
-    public const CONSTRAIN_PRIMARY_KEY = "PRIMARY";
-    public const CONSTRAIN_INDEX_KEY = "INDEX";
-    public const CONSTRAIN_UNIQUE_KEY = "UNIQUE";
-    public const CONSTRAIN_FOREIGN_KEY = "FOREIGN";
-    public const CONSTRAIN_ALL_KEY = "ALL";
+    //constraint list
+    public const CONSTRAINT_PRIMARY_KEY = "PRIMARY";
+    public const CONSTRAINT_INDEX_KEY = "INDEX";
+    public const CONSTRAINT_UNIQUE_KEY = "UNIQUE";
+    public const CONSTRAINT_FOREIGN_KEY = "FOREIGN";
 
-    //Header Title
-    public const HEADER_TITLE_TABLE_NAME = "Table Name";
-    public const HEADER_TITLE_COLUMN_NAME = "Column Name";
-    public const HEADER_TITLE_CONSTRAIN = "Constraints";
-    public const HEADER_TITLE_REFERENCED_TABLE_NAME = "Reference Table Name";
-    public const HEADER_TITLE_REFERENCED_COLUMN_NAME = "Reference Column Name";
-
-    //rules
     public const NAME_LENGTH = 64;
 
     public const STATUS_TRUE_EMOJI = "✓";
@@ -46,5 +37,5 @@ class Constant
     public const STATUS_FALSE = false;
 
     public const STANDARD_COMMAND = 'STANDARD';
-    public const CONSTRAIN_COMMAND = 'CONSTRAIN';
+    public const CONSTRAINT_COMMAND = 'CONSTRAINT';
 }
