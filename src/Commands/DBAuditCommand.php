@@ -19,7 +19,7 @@ class DBAuditCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Database Audit : Check Standard and Constrain';
+    protected $description = 'Database Audit : Check Standard and Constraint';
 
     /**
      * Execute the console command.
@@ -28,14 +28,14 @@ class DBAuditCommand extends Command
     {
         $commandSelect = $this->choice(
             'Please Select',
-            [Constant::STANDARD_COMMAND, Constant::CONSTRAIN_COMMAND]
+            [Constant::STANDARD_COMMAND, Constant::CONSTRAINT_COMMAND]
         );
 
         if ($commandSelect === Constant::STANDARD_COMMAND) {
             $this->call('db:standard');
         }
 
-        if ($commandSelect === Constant::CONSTRAIN_COMMAND) {
+        if ($commandSelect === Constant::CONSTRAINT_COMMAND) {
             $this->call('db:constraint');
         }
     }

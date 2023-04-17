@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table($table_name, function (Blueprint $table) {
-            $table->$dataType($field_name)->change()->unique();
+        Schema::table($tableName, function (Blueprint $table) {
+            $table->$dataType($fieldName)->change()->unique();
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table($table_name, function (Blueprint $table) {
+        Schema::table($tableName, function (Blueprint $table) {
             //
         });
     }

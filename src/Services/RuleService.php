@@ -3,7 +3,6 @@
 namespace Vcian\LaravelDBAuditor\Services;
 
 use Exception;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 
@@ -116,25 +115,25 @@ class RuleService
                 $checkNamePlural = $this->namingRuleService->nameAlwaysPlural($name);
 
                 if (!$checkLength) {
-                    $messages[] = 'Names should be not more than 64 characters.';
+                    $messages[] = __('Lang::messages.standard.error_messages.length');
                 }
 
                 if (!$checkNamePlural) {
-                    $messages[] = 'Use Table Name Plural.';
+                    $messages[] = __('Lang::messages.standard.error_messages.plural');
                 }
             }
 
             if (!$checkSpace) {
-                $messages[] = 'Using space between words is not advised. Please Use Underscore.';
+                $messages[] = __('Lang::messages.standard.error_messages.space');
             }
 
             if (!$checkAlphabets) {
-                $messages[] = 'Numbers are not for names! Please use alphabets for name.';
+                $messages[] = __('Lang::messages.standard.error_messages.alphabets');
             }
 
 
             if (!$checkLowerCase) {
-                $messages[] = 'Use lowercase MYSQL is case sensitive.';
+                $messages[] = __('Lang::messages.standard.error_messages.lowercase');
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -148,14 +147,14 @@ class RuleService
      * @param string $tableName
      * @return array
      */
-    public function tableRules($tableName)
+    public function tableRules($tableName): array
     {
         $checkTableStatus = Constant::ARRAY_DECLARATION;
         try {
             if ($tableName) {
                 $tableExist = $this->dBConnectionService->checkTableExist($tableName);
                 if (!$tableExist) {
-                    return false;
+                    return Constant::STATUS_FALSE;
                 }
                 $fields = $this->fieldRules($tableName);
                 $tableComment = $this->checkRules($tableName, Constant::TABLE_RULES);
