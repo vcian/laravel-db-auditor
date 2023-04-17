@@ -24,17 +24,29 @@ You can access DB Auditor using below artisan commands.
 
 > #### **php artisan db:audit**
 > 
-> This command give you result with list of table with standard follow indication.
+> This command give you options to select feature like check the database standards or check the constraint.
+>
+
+**Note:**
+
+If you want to check standalone feature then you can execute below artisan command one by one.
+
+> #### **php artisan db:constraint**
 > 
-> You can also see table specific column name which doesn't have standard followed.
+> This command gives you result with list of tables with primary,foreign,unique,index constraint.
+> 
+> 
+> You can add more constraint to the table by seeing existing constraint with table.
+> 
 
 > #### **php artisan db:standard**
 > 
-> This command gives you result with list of tables with primary,foreign,unique,index constrain.
+> This command give you result with list of table with standard follow indication.
 > 
-> You can add more constrain to the table by seeing existing constrain with table.
-
-
+> 
+> You can also see table specific column name which doesn't have standard followed.
+>
+>
 
 **Note:**
 
