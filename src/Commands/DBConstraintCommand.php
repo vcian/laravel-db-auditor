@@ -67,7 +67,7 @@ class DBConstraintCommand extends Command
 
                                 if ($tableHasValue) {
                                     $continue = Constant::STATUS_FALSE;
-                                    render('<div class="w-120 px-2 p-1 bg-red-600 text-center"> 😢 Can not apply ' . strtolower($selectConstrain) . ' key | Please trancate table 😎 </div>');
+                                    render('<div class="w-120 px-2 p-1 bg-red-600 text-center">' . __('Lang::messages.constraint.error_message.constraint_not_apply', ['constraint' => strtolower($selectConstrain)]) . '</div>');
                                 }
                             }
 
@@ -80,7 +80,7 @@ class DBConstraintCommand extends Command
                                 }
 
                                 $selectField = $this->choice(
-                                    __('Lang::messages.constraint.question.field_selection').' '. strtolower($selectConstrain) . ' key',
+                                    __('Lang::messages.constraint.question.field_selection') . ' ' . strtolower($selectConstrain) . ' key',
                                     $fields
                                 );
 
