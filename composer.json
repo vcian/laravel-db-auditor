@@ -20,7 +20,7 @@
   ],
   "require": {
     "php": "^8.0",
-    "doctrine/dbal": "4.0.x-dev"
+    "doctrine/dbal": "^3.6"
   },
   "autoload": {
     "psr-4": {
