@@ -45,9 +45,9 @@ class RuleService
     }
 
     /**
-     * Check Status for Tables and Fields 
-     * @param string $tableName 
-     * @return string 
+     * Check Status for Tables and Fields
+     * @param string $tableName
+     * @return string
      */
     public function checkStatus(string $tableName): string
     {
@@ -69,7 +69,7 @@ class RuleService
     /**
      * Get Table Size
      * @param string $tableName
-     * @return string $size 
+     * @return string $size
      */
     public function getTableSize(string $tableName)
     {
@@ -115,25 +115,25 @@ class RuleService
                 $checkNamePlural = $this->namingRuleService->nameAlwaysPlural($name);
 
                 if (!$checkLength) {
-                    $messages[] = __('Lang::messages.standard.error_messages.length');
+                    $messages[] = __('Lang::messages.standard.error_message.length');
                 }
 
                 if (!$checkNamePlural) {
-                    $messages[] = __('Lang::messages.standard.error_messages.plural');
+                    $messages[] = __('Lang::messages.standard.error_message.plural');
                 }
             }
 
             if (!$checkSpace) {
-                $messages[] = __('Lang::messages.standard.error_messages.space');
+                $messages[] = __('Lang::messages.standard.error_message.space');
             }
 
             if (!$checkAlphabets) {
-                $messages[] = __('Lang::messages.standard.error_messages.alphabets');
+                $messages[] = __('Lang::messages.standard.error_message.alphabets');
             }
 
 
             if (!$checkLowerCase) {
-                $messages[] = __('Lang::messages.standard.error_messages.lowercase');
+                $messages[] = __('Lang::messages.standard.error_message.lowercase');
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());

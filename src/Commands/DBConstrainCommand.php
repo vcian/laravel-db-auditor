@@ -94,7 +94,7 @@ class DBConstrainCommand extends Command
 
                                 renderUsing($this->output);
 
-                                render('<div class="w-120 px-2 p-1 bg-green-600 text-center"> 😎 ' . __('Lang::messages.constraint.messages.success') . ' 😎 </div>');
+                                render('<div class="w-120 px-2 p-1 bg-green-600 text-center"> 😎 ' . __('Lang::messages.constraint.success_message.constraint_added') . ' 😎 </div>');
 
                                 $this->displayTable($tableName);
                             }
@@ -121,7 +121,7 @@ class DBConstrainCommand extends Command
      */
     public function displayTable($tableName)
     {
-        $auditService = resolve(AuditService::class); 
+        $auditService = resolve(AuditService::class);
 
         $data = [
             "table" => $tableName,
