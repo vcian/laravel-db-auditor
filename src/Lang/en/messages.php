@@ -28,7 +28,7 @@ return [
             'constraint_added' => 'Constraint Added Successfully'
         ],
         'error_message' => [
-            'constraint_not_apply' => '😢 Can not apply :constraint key | Please trancate table 😎 '
+            'constraint_not_apply' => '😢 Can not apply :constraint key | Please truncate table 😎'
         ]
     ],
     'standard' => [
