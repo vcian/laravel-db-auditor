@@ -11,11 +11,14 @@ use Vcian\LaravelDBAuditor\Constants\Constant;
 
 class AuditService
 {
-    protected $results = Constant::ARRAY_DECLARATION;
+    /**
+     * @var array
+     */
+    protected array $results = Constant::ARRAY_DECLARATION;
 
     public function __construct(protected DBConnectionService $dBConnectionService)
     {
-        // 
+        //
     }
 
     /**
@@ -35,24 +38,22 @@ class AuditService
      */
     public function getTableFields(string $tableName): array
     {
-        $fields = $this->dBConnectionService->getFieldsDetails($tableName);
-        return $fields;
+        return $this->dBConnectionService->getFieldsDetails($tableName);
     }
 
     /**
      * Get Table Size
      * @param string $tableName
-     * @return string $size 
+     * @return string $size
      * @return string
      */
     public function getTableSize(string $tableName): string
     {
-        $tableSize = $this->dBConnectionService->getTableSize($tableName);
-        return $tableSize;
+        return $this->dBConnectionService->getTableSize($tableName);
     }
 
     /**
-     * Check table exisit or not
+     * Check table exist or not
      * @param string $tableName
      * @return bool
      */
@@ -72,7 +73,7 @@ class AuditService
     public function checkFieldExistOrNot(string $tableName, string $field) : bool
     {
         $fields = $this->dBConnectionService->getFields($tableName);
-        if(in_array($field, $fields)) {
+        if (in_array($field, $fields)) {
             return Constant::STATUS_TRUE;
         }
 
@@ -88,7 +89,7 @@ class AuditService
     {
         $fields = Constant::ARRAY_DECLARATION;
         try {
-            $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+            $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
             WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_KEY` = '' ");
 
             foreach ($fieldList as $field) {
@@ -103,6 +104,7 @@ class AuditService
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
+
         return $fields;
     }
 
@@ -138,13 +140,13 @@ class AuditService
     public function tableHasValue(string $tableName): bool
     {
         try {
-            $tableContainValue = DB::select("Select * from " . $tableName . "");
-            if ($tableContainValue) {
+            if (DB::select("Select * from " . $tableName . "")) {
                 return Constant::STATUS_TRUE;
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
+
         return Constant::STATUS_FALSE;
     }
 
@@ -158,6 +160,7 @@ class AuditService
     {
         try {
             $constraintFields = Constant::ARRAY_DECLARATION;
+
             if (!$this->dBConnectionService->checkTableExist($tableName)) {
                 return [];
             }
@@ -290,7 +293,7 @@ class AuditService
                 } else {
                     $contents = str_replace('$' . $search, "'$replace'", $contents);
                 }
-            } 
+            }
 
             $time = time();
 
@@ -299,7 +302,7 @@ class AuditService
             Artisan::call("migrate", [
                 '--force' => true,
                 '--path' => "database/migrations/" . $time . "_update_" . $tableName . "_" . $fieldName . "_" . strtolower($constrainName) . ".php"
-            ]); 
+            ]);
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
@@ -316,7 +319,7 @@ class AuditService
     public function getFieldDataType(string $tableName, string $fieldName): mixed
     {
         try {
-            $dataType = DB::select("SELECT `DATA_TYPE` FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+            $dataType = DB::select("SELECT `DATA_TYPE` FROM `INFORMATION_SCHEMA`.`COLUMNS`
             WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ");
 
             if (isset($dataType[0]->DATA_TYPE) && $dataType[0]->DATA_TYPE !== null) {
@@ -324,8 +327,9 @@ class AuditService
             } else {
                 return Constant::STATUS_FALSE;
             }
-        } catch (Exception $exception) { 
-            Log::error($exception->getMessage()); 
-        } 
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+            return Constant::STATUS_FALSE;
+        }
     }
 }
