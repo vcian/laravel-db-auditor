@@ -10,4 +10,4 @@ jobs:
   update:
     permissions:
       contents: write
-    uses: laravel-db-auditor/.github/.github/workflows/update-changelog.yml@main
+    uses: laravel-db-auditor/.github/workflows/update-changelog.yml@main
