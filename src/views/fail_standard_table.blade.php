@@ -1,17 +1,19 @@
 <div class="mt-1">
-    <span class="px-2 font-bold bg-blue-300 text-black"> {{ strtoupper($tableStatus['table'] . ' TABLE') }} </span>
+    TABLE NAME : <span class="px-2 font-bold bg-blue text-white"> {{ str_replace("_", ' ', strtoupper($tableStatus['table'])) }} </span>
     @if ($tableStatus['table_comment'])
-        <div class="mt-1"><span class="text-yellow mt-1">Found {{ count($tableStatus['table_comment']) }}
-                Suggestion</span></div>
+        <div class="mt-0">
+            <span class="text-yellow mt-1">Suggestion(s)</span>
+        </div>
+        <ol class='mt-1 ml-1'>
         @foreach ($tableStatus['table_comment'] as $comment)
-            <div class="mt-1">
-                <span class="px-2 font-bold text-black"> 😳 </span>
-                &nbsp;<span class="text-red">{{ $comment }}</span>
-            </div>
+            <li>
+                <span class="text-red">{{ $comment }}</span>
+            </li>
         @endforeach
+        </ol>
     @endif
     <div class="mt-1">
-        <table>
+        <table class="w-full">
             <thead>
                 <tr>
                     <th> Field Name </th>

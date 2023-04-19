@@ -11,13 +11,13 @@ class NamingRuleService
     /**
      * Check name only in lowercase.
      * @param string $name
-     * @return bool
+     * @return mixed
      */
-    public function nameOnlyLowerCase(string $name) : bool
+    public function nameOnlyLowerCase(string $name) : mixed
     {
         $name = $this->removeSpecialCharacter($name);
         if (strtolower($name) !== $name) {
-            return Constant::STATUS_FALSE;
+            return $this->addSpecialCharacter(strtolower($name));
         }
 
         return Constant::STATUS_TRUE;
@@ -26,13 +26,13 @@ class NamingRuleService
     /**
      * Check name has no space.
      * @param string $name
-     * @return bool
+     * @return mixed
      */
-    public function nameHasNoSpace(string $name) : bool
+    public function nameHasNoSpace(string $name) : mixed
     {
         $name == trim($name);
         if (str_contains($name, ' ')) {
-            return Constant::STATUS_FALSE;
+            return $this->addSpecialCharacter($name);
         }
 
         return Constant::STATUS_TRUE;
@@ -41,15 +41,15 @@ class NamingRuleService
     /**
      * Check name only in alphabets.
      * @param string $tableName
-     * @return bool
+     * @return mixed
      */
-    public function nameHasOnlyAlphabets(string $tableNames) : bool
+    public function nameHasOnlyAlphabets(string $tableNames) : mixed
     {
         $name = $this->removeSpecialCharacter($tableNames);
         if (!ctype_alpha($name)) {
-            return Constant::STATUS_FALSE;
+            return $this->addSpecialCharacter(preg_replace('/[0-9]+/', '', $tableNames));
         }
-
+        
         return Constant::STATUS_TRUE;
     }
 
@@ -72,13 +72,13 @@ class NamingRuleService
      * @param string $name
      * @return bool
      */
-    public function nameHasNoPrefix(string $tableNames) : bool
+    public function nameHasNoPrefix(string $tableNames) : mixed
     {
         $nameIdentfy = explode('_', $tableNames);
 
         $name = $nameIdentfy[0];
         if (strtolower($name) === Constant::PREFIX_STRING) {
-            return Constant::STATUS_FALSE;
+            return $nameIdentfy[1];
         }
 
         return Constant::STATUS_TRUE;
@@ -87,13 +87,13 @@ class NamingRuleService
     /**
      * Check name only in plural.
      * @param string $tableNames
-     * @return bool
+     * @return mixed
      */
-    public function nameAlwaysPlural(string $tableNames) : bool
+    public function nameAlwaysPlural(string $tableNames) : mixed
     {
         $pluralName = Str::plural($tableNames);
         if ($tableNames !== $pluralName) {
-            return Constant::STATUS_FALSE;
+            return $pluralName;
         }
 
         return Constant::STATUS_TRUE;
@@ -106,6 +106,16 @@ class NamingRuleService
      */
     public function removeSpecialCharacter(string $name) : string
     {
-        return str_replace(' ', '', str_replace("_", '', $name));
+        return str_replace("_", '', $name);
+    }
+
+    /**
+     * Add special character
+     * @param string $name
+     * @return string
+     */
+    public function addSpecialCharacter(string $name) : string
+    {
+        return str_replace(" ", '_', $name);
     }
 }

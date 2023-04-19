@@ -28,7 +28,7 @@
                 SUCCESS</span>
         </div>
         <div class="mt-1">
-            <span class="text-black ml-5 px-2 bg-red">{{ $error }}</span> <span class="text-red ml-1"> TABLE
+            <span class="text-white ml-5 px-2 bg-red">{{ $error }}</span> <span class="text-red ml-1"> TABLE
                 ERROR</span>
         </div>
     </div>

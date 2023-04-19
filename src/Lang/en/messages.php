@@ -25,19 +25,20 @@ return [
             'foreign_field' => 'Please add foreign table primary key name',
         ],
         'success_message' => [
-            'constraint_added' => 'Constraint Added Successfully'
+            'constraint_added' => 'Congratulations! Constraint Added Successfully'
         ],
         'error_message' => [
-            'constraint_not_apply' => '😢 Can not apply :constraint key | Please truncate table 😎'
+            'constraint_not_apply' => 'Can not apply :constraint key | Please truncate table',
+            'foreign_not_apply' => 'Columns must have the same data type'
         ]
     ],
     'standard' => [
         'error_message' => [
-            'length' => 'Table name should not be more than 64 characters.',
-            'plural' => 'Table name should be Plural.',
-            'space' => 'Using space between words is not advised. Please Use Underscore "_".',
-            'alphabets' => 'Numbers are not for names and is not advised! Please use alphabets for name.',
-            'lowercase' => 'Name should be lowercase.'
+            'length' => 'Table name should not be more than 64 characters',
+            'plural' => 'Table name should be Plural',
+            'space' => 'Using space between words is not advised | Please Use Underscore "_"',
+            'alphabets' => 'Numbers are not for names and is not advised! Please use alphabets for name',
+            'lowercase' => 'Name should be lowercase'
         ]
     ]
 

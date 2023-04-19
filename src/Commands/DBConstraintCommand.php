@@ -67,7 +67,8 @@ class DBConstraintCommand extends Command
 
                                 if ($tableHasValue) {
                                     $continue = Constant::STATUS_FALSE;
-                                    render('<div class="w-120 px-2 p-1 bg-red-600 text-center">' . __('Lang::messages.constraint.error_message.constraint_not_apply', ['constraint' => strtolower($selectConstrain)]) . '</div>');
+                                    
+                                    $this->errorMessage(__('Lang::messages.constraint.error_message.constraint_not_apply', ['constraint' => strtolower($selectConstrain)]));
                                 }
                             }
 
@@ -85,16 +86,14 @@ class DBConstraintCommand extends Command
                                 );
 
                                 if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
-                                    $referenceTable = $this->ask(__('Lang::messages.constraint.question.foreign_table'));
-                                    $referenceField = $this->ask(__('Lang::messages.constraint.question.foreign_field'));
-                                    $auditService->addConstraint($tableName, $selectField, $selectConstrain, $referenceTable, $referenceField);
+                                    $this->foreignKeyConstraint($tableName, $selectField);
+                                } else {
+                                    $auditService->addConstraint($tableName, $selectField, $selectConstrain);
                                 }
-
-                                $auditService->addConstraint($tableName, $selectField, $selectConstrain);
 
                                 renderUsing($this->output);
 
-                                render('<div class="w-120 px-2 p-1 bg-green-600 text-center"> 😎 ' . __('Lang::messages.constraint.success_message.constraint_added') . ' 😎 </div>');
+                                $this->successMessage(__('Lang::messages.constraint.success_message.constraint_added'));
 
                                 $this->displayTable($tableName);
                             }
@@ -117,9 +116,9 @@ class DBConstraintCommand extends Command
     /**
      * Display selected table
      * @param string $tableName
-     * @return render
+     * @return void
      */
-    public function displayTable($tableName)
+    public function displayTable(string $tableName) :  void
     {
         $auditService = resolve(AuditService::class);
 
@@ -137,5 +136,82 @@ class DBConstraintCommand extends Command
         ];
 
         render(view('DBAuditor::constraint', ['data' => $data]));
+    }
+
+    /**
+     * Display success messages
+     * @param string $message
+     */
+    public function successMessage(string $message) : void
+    {
+        render('<pre class="text-green">
+                               .-"""-.
+                              / .===. \
+                              \/ 6 6 \/
+                              ( \___/ )
+          _________________ooo_\_____/______________________
+         /                                                  \
+        |   '. $message .'   |
+         \______________________________ooo_________________/
+                               |  |  |
+                               |_ | _|
+                               |  |  |
+                               |__|__|
+                               /-`Y`-\
+                              (__/ \__)
+        </pre>');
+    }
+
+    /**
+     * Display error messages
+     * @param string $message
+     */
+    public function errorMessage(string $message) : void
+    {
+        render('<pre class="text-center text-red">
+        *********************************************************************
+                                        
+                    '. $message .'      
+
+        *********************************************************************
+        </pre>');
+    }
+
+    public function foreignKeyConstraint(string $tableName, string $selectField)
+    {
+        $auditService = resolve(AuditService::class);
+     
+        $referenceTable = $this->ask(__('Lang::messages.constraint.question.foreign_table'));
+            
+        if($auditService->checkTableExistOrNot($referenceTable)) {
+            $referenceField = $this->ask(__('Lang::messages.constraint.question.foreign_field'));
+            if(!$auditService->checkFieldExistOrNot($referenceTable, $referenceField)) {
+                $this->errorMessage("Foreign field not found.");
+            } 
+        } else {
+            $this->errorMessage("Foreign table not found.");
+        }
+        
+        $referenceFieldType = $auditService->getFieldDataType($referenceTable, $referenceField);
+        $selectedFieldType = $auditService->getFieldDataType($tableName, $selectField);
+        
+        if($referenceFieldType !== $selectedFieldType) {
+
+            render(' 
+            <div class="mt-1">
+                <div class="flex space-x-1">
+                    <span class="font-bold text-green">'.$selectedFieldType.'</span>
+                    <i class="text-blue">'. $selectField .'</i>
+                    <span class="flex-1 content-repeat-[.] text-gray"></span>
+                    <i class="text-blue">'. $referenceField .'</i>
+                    <span class="font-bold text-green">'. $referenceFieldType .'</span>
+                </div>
+            </div>
+            ');
+
+            return $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_not_apply')); 
+        }
+        
+        $auditService->addConstraint($tableName, $selectField, Constant::CONSTRAINT_FOREIGN_KEY, $referenceTable, $referenceField);
     }
 }

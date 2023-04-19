@@ -52,6 +52,34 @@ class AuditService
     }
 
     /**
+     * Check table exisit or not
+     * @param string $tableName
+     * @return bool
+     */
+    public function checkTableExistOrNot(string $tableName) : bool
+    {
+        $tableResult = $this->dBConnectionService->checkTableExist($tableName);
+        Log::error($tableResult);
+        return $tableResult;
+    }
+
+    /**
+     * Check field exist or not
+     * @param string $tableName
+     * @param string $field
+     * @return bool
+     */
+    public function checkFieldExistOrNot(string $tableName, string $field) : bool
+    {
+        $fields = $this->dBConnectionService->getFields($tableName);
+        if(in_array($field, $fields)) {
+            return Constant::STATUS_TRUE;
+        }
+
+        return Constant::STATUS_FALSE;
+    }
+
+    /**
      * Get fields which has no constraint
      * @param string $tableName
      * @return array
@@ -262,7 +290,7 @@ class AuditService
                 } else {
                     $contents = str_replace('$' . $search, "'$replace'", $contents);
                 }
-            }
+            } 
 
             $time = time();
 
@@ -271,7 +299,7 @@ class AuditService
             Artisan::call("migrate", [
                 '--force' => true,
                 '--path' => "database/migrations/" . $time . "_update_" . $tableName . "_" . $fieldName . "_" . strtolower($constrainName) . ".php"
-            ]);
+            ]); 
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
@@ -296,8 +324,8 @@ class AuditService
             } else {
                 return Constant::STATUS_FALSE;
             }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
+        } catch (Exception $exception) { 
+            Log::error($exception->getMessage()); 
+        } 
     }
 }

@@ -118,22 +118,21 @@ class RuleService
                     $messages[] = __('Lang::messages.standard.error_message.length');
                 }
 
-                if (!$checkNamePlural) {
-                    $messages[] = __('Lang::messages.standard.error_message.plural');
+                if ($checkNamePlural !== Constant::STATUS_TRUE) {
+                    $messages[] = __('Lang::messages.standard.error_message.plural')." ( ".$checkNamePlural." )";
                 }
             }
 
-            if (!$checkSpace) {
-                $messages[] = __('Lang::messages.standard.error_message.space');
+            if ($checkSpace !== Constant::STATUS_TRUE) {
+                $messages[] = __('Lang::messages.standard.error_message.space')." ( ".$checkSpace." )";
             }
 
-            if (!$checkAlphabets) {
-                $messages[] = __('Lang::messages.standard.error_message.alphabets');
+            if ($checkAlphabets !== Constant::STATUS_TRUE) {
+                $messages[] = __('Lang::messages.standard.error_message.alphabets')." ( ".$checkAlphabets." )";
             }
-
-
-            if (!$checkLowerCase) {
-                $messages[] = __('Lang::messages.standard.error_message.lowercase');
+            
+            if ($checkLowerCase !== Constant::STATUS_TRUE) {
+                $messages[] = __('Lang::messages.standard.error_message.lowercase')." ( ".$checkLowerCase." )";
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -163,7 +162,7 @@ class RuleService
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-
+        // dd($checkTableStatus);
         return $checkTableStatus;
     }
 }

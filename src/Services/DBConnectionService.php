@@ -43,7 +43,7 @@ class DBConnectionService
     {
         $fields = Constant::ARRAY_DECLARATION;
         try {
-            $fieldDetails = DB::select('Describe ' . $tableName);
+            $fieldDetails = DB::select("Describe {$tableName}");
             foreach ($fieldDetails as $field) {
                 array_push($fields, $field->Field);
             }

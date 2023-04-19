@@ -1,6 +1,6 @@
  <div class="mx-2 my-1">
      <div class="space-x-1">
-         <span class="px-1 bg-blue-500 text-white">{{ strtoupper($data['table'] . ' TABLE') }}</span>
+        TABLE NAME : <span class="px-1 bg-blue-500 text-white">{{ str_replace("_", ' ', strtoupper($data['table'])) }}</span>
      </div>
 
      <div class="flex space-x-1 mt-1">
