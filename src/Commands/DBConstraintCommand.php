@@ -48,10 +48,10 @@ class DBConstraintCommand extends Command
 
                 do {
                     $continue = Constant::STATUS_TRUE;
-                    $noConstrainfields = $auditService->getNoConstraintFields($tableName);
-                    $constrainList = $auditService->getConstraintList($tableName, $noConstrainfields);
+                    $noConstraintFields = $auditService->getNoConstraintFields($tableName);
+                    $constraintList = $auditService->getConstraintList($tableName, $noConstraintFields);
 
-                    if ($noConstrainfields) {
+                    if ($noConstraintFields) {
 
                         $userInput = $this->confirm(__('Lang::messages.constraint.question.continue'));
 
@@ -59,7 +59,7 @@ class DBConstraintCommand extends Command
 
                             $selectConstrain = $this->choice(
                                 __('Lang::messages.constraint.question.constraint_selection'),
-                                $constrainList
+                                $constraintList
                             );
 
                             if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY || $selectConstrain === Constant::CONSTRAINT_UNIQUE_KEY) {
@@ -75,9 +75,9 @@ class DBConstraintCommand extends Command
                             if ($continue) {
 
                                 if ($selectConstrain === Constant::CONSTRAINT_PRIMARY_KEY || $selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
-                                    $fields = $noConstrainfields['integer'];
+                                    $fields = $noConstraintFields['integer'];
                                 } else {
-                                    $fields = $noConstrainfields['mix'];
+                                    $fields = $noConstraintFields['mix'];
                                 }
 
                                 $selectField = $this->choice(

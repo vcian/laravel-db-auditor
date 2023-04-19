@@ -36,7 +36,7 @@ return [
         'error_message' => [
             'length' => 'Table name should not be more than 64 characters',
             'plural' => 'Table name should be Plural',
-            'space' => 'Using space between words is not advised | Please Use Underscore "_"',
+            'space' => 'Space between words is not advised. Please Use Underscore "_"',
             'alphabets' => 'Numbers are not for names and is not advised! Please use alphabets for name',
             'lowercase' => 'Name should be lowercase'
         ]
