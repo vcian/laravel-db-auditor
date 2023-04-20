@@ -21,10 +21,9 @@ class DBConnectionService
             $tables = DB::select('SHOW TABLES');
 
             if ($tables) {
-
                 foreach ($tables as $tableValue) {
                     foreach ($tableValue as $tableName) {
-                        array_push($tableList, $tableName);
+                        $tableList[] = $tableName;
                     }
                 }
             }
@@ -45,7 +44,7 @@ class DBConnectionService
         try {
             $fieldDetails = DB::select("Describe {$tableName}");
             foreach ($fieldDetails as $field) {
-                array_push($fields, $field->Field);
+                $fields[] = $field->Field;
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -81,7 +80,7 @@ class DBConnectionService
     {
         $fieldWithType = Constant::ARRAY_DECLARATION;
         try {
-            $fieldWithType = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+            $fieldWithType = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
                             WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' ");
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -97,16 +96,20 @@ class DBConnectionService
     public function getTableSize(string $tableName): string
     {
         try {
-            $query = 'SELECT 
-                    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024),2) AS `size` FROM information_schema.TABLES 
-                    WHERE 
-                        TABLE_SCHEMA = "' . env('DB_DATABASE') . '" AND TABLE_NAME = "' . $tableName . '" 
-                    ORDER BY 
+            $query = 'SELECT
+                    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024),2) AS `size` FROM information_schema.TABLES
+                    WHERE
+                        TABLE_SCHEMA = "' . env('DB_DATABASE') . '" AND TABLE_NAME = "' . $tableName . '"
+                    ORDER BY
                         (DATA_LENGTH + INDEX_LENGTH) DESC';
             $result = DB::select($query);
-            return $result[0]->size;
+            if ($result) {
+                return $result[0]->size;
+            }
+
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
+        return Constant::STATUS_FALSE;
     }
 }

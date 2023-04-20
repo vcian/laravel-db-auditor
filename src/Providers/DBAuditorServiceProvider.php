@@ -6,12 +6,12 @@ use Illuminate\Support\ServiceProvider;
 
 class DBAuditorServiceProvider extends ServiceProvider
 {
-
-    protected $commands = [
+    protected array $commands = [
         'Vcian\LaravelDBAuditor\Commands\DBAuditCommand',
         'Vcian\LaravelDBAuditor\Commands\DBStandardCommand',
         'Vcian\LaravelDBAuditor\Commands\DBConstraintCommand'
     ];
+
     /**
      * Register services.
      */
@@ -26,6 +26,6 @@ class DBAuditorServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../views', 'DBAuditor');
-        $this->loadTranslationsFrom(__DIR__.'/../Lang/', 'Lang');
+        $this->loadTranslationsFrom(__DIR__ . '/../Lang/', 'Lang');
     }
 }
