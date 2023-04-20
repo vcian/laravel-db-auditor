@@ -41,5 +41,4 @@ return [
             'lowercase' => 'Name should be lowercase'
         ]
     ]
-
 ];

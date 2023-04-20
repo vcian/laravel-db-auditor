@@ -11,11 +11,6 @@ use Vcian\LaravelDBAuditor\Constants\Constant;
 
 class AuditService
 {
-    /**
-     * @var array
-     */
-    protected array $results = Constant::ARRAY_DECLARATION;
-
     public function __construct(protected DBConnectionService $dBConnectionService)
     {
         //
@@ -27,8 +22,7 @@ class AuditService
      */
     public function getTablesList(): array
     {
-        $tableList = $this->dBConnectionService->getTableList();
-        return $tableList;
+        return $this->dBConnectionService->getTableList();
     }
 
     /**
@@ -57,11 +51,9 @@ class AuditService
      * @param string $tableName
      * @return bool
      */
-    public function checkTableExistOrNot(string $tableName) : bool
+    public function checkTableExistOrNot(string $tableName): bool
     {
-        $tableResult = $this->dBConnectionService->checkTableExist($tableName);
-        Log::error($tableResult);
-        return $tableResult;
+        return $this->dBConnectionService->checkTableExist($tableName);
     }
 
     /**
@@ -70,13 +62,12 @@ class AuditService
      * @param string $field
      * @return bool
      */
-    public function checkFieldExistOrNot(string $tableName, string $field) : bool
+    public function checkFieldExistOrNot(string $tableName, string $field): bool
     {
         $fields = $this->dBConnectionService->getFields($tableName);
         if (in_array($field, $fields)) {
             return Constant::STATUS_TRUE;
         }
-
         return Constant::STATUS_FALSE;
     }
 
@@ -104,7 +95,6 @@ class AuditService
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-
         return $fields;
     }
 
@@ -118,36 +108,16 @@ class AuditService
     {
         $constrainList = Constant::ARRAY_DECLARATION;
 
-        if (isset($fields['integer']) && !empty($fields['integer'])) {
-            array_push($constrainList, Constant::CONSTRAINT_FOREIGN_KEY);
+        if (!empty($fields['integer'])) {
+            $constrainList[] = Constant::CONSTRAINT_FOREIGN_KEY;
 
-            $primary = $this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY);
-            if (empty($primary)) {
-                array_push($constrainList, Constant::CONSTRAINT_PRIMARY_KEY);
+            if (empty($this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY))) {
+                $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
             }
         }
-        array_push($constrainList, Constant::CONSTRAINT_INDEX_KEY);
-        array_push($constrainList, Constant::CONSTRAINT_UNIQUE_KEY);
-
+        $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
+        $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
         return $constrainList;
-    }
-
-    /**
-     * Check Table Has Value
-     * @param string $tableName
-     * @return bool
-     */
-    public function tableHasValue(string $tableName): bool
-    {
-        try {
-            if (DB::select("Select * from " . $tableName . "")) {
-                return Constant::STATUS_TRUE;
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-
-        return Constant::STATUS_FALSE;
     }
 
     /**
@@ -167,20 +137,18 @@ class AuditService
 
             $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
 
-            if ($input == Constant::CONSTRAINT_FOREIGN_KEY) {
-                $foreignFieldDetails = $this->getForeignKeyDetails($tableName);
-                return $foreignFieldDetails;
+            if ($input === Constant::CONSTRAINT_FOREIGN_KEY) {
+                return $this->getForeignKeyDetails($tableName);
             }
 
             if ($result) {
                 foreach ($result as $value) {
-                    array_push($constraintFields, $value->Column_name);
+                    $constraintFields[] = $value->Column_name;
                 }
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-
         return $constraintFields;
     }
 
@@ -200,11 +168,11 @@ class AuditService
 
             if ($resultForeignKey) {
                 foreach ($resultForeignKey as $value) {
-                    array_push($foreignFieldDetails, [
-                        "colum_name" => $value->COLUMN_NAME,
+                    $foreignFieldDetails[] = [
+                        "column_name" => $value->COLUMN_NAME,
                         "foreign_table_name" => $value->REFERENCED_TABLE_NAME,
-                        "foreign_colum_name" => $value->REFERENCED_COLUMN_NAME
-                    ]);
+                        "foreign_column_name" => $value->REFERENCED_COLUMN_NAME
+                    ];
                 }
             }
         } catch (Exception $exception) {
@@ -214,38 +182,57 @@ class AuditService
     }
 
     /**
-     * Add constraint to the field
-     * @param string $table
-     * @param string $field
-     * @param string $constraint
-     * @param string $referenceTableName
-     * @param string $referenceField
+     * Check Table Has Value
+     * @param string $tableName
      * @return bool
      */
-    public function addConstraint(
-        string $table,
-        string $field,
-        string $constraint,
-        string $referenceTableName = null,
-        string $referenceField = null
-    ): bool {
+    public function tableHasValue(string $tableName): bool
+    {
         try {
-            if ($constraint == Constant::CONSTRAINT_PRIMARY_KEY) {
-                $this->migrateConstrain(Constant::PRIMARY_FILE_NAME, $constraint, $table, $field);
-            } elseif ($constraint == Constant::CONSTRAINT_INDEX_KEY) {
-                $this->migrateConstrain(Constant::INDEX_FILE_NAME, $constraint, $table, $field);
-            } elseif ($constraint == Constant::CONSTRAINT_UNIQUE_KEY) {
-                $this->migrateConstrain(Constant::UNIQUE_FILE_NAME, $constraint, $table, $field);
-            } elseif ($constraint == Constant::CONSTRAINT_FOREIGN_KEY) {
-                $this->migrateConstrain(Constant::FOREIGN_FILE_NAME, $constraint, $table, $field, $referenceField, $referenceTableName);
-            } else {
-                return false;
+            if (DB::select("Select * from " . $tableName)) {
+                return Constant::STATUS_TRUE;
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
+        return Constant::STATUS_FALSE;
+    }
 
-        return true;
+    /**
+     * Add constraint to the field
+     * @param string $table
+     * @param string $field
+     * @param string $constraint
+     * @param string|null $referenceTableName
+     * @param string|null $referenceField
+     * @return bool
+     */
+    public function addConstraint(
+        string $table, string $field,
+        string $constraint, string $referenceTableName = null,
+        string $referenceField = null): bool
+    {
+        try {
+            switch ($constraint) {
+                case Constant::CONSTRAINT_PRIMARY_KEY:
+                    $this->migrateConstrain(Constant::PRIMARY_FILE_NAME, $constraint, $table, $field);
+                    break;
+                case Constant::CONSTRAINT_INDEX_KEY:
+                    $this->migrateConstrain(Constant::INDEX_FILE_NAME, $constraint, $table, $field);
+                    break;
+                case Constant::CONSTRAINT_UNIQUE_KEY:
+                    $this->migrateConstrain(Constant::UNIQUE_FILE_NAME, $constraint, $table, $field);
+                    break;
+                case Constant::CONSTRAINT_FOREIGN_KEY:
+                    $this->migrateConstrain(Constant::FOREIGN_FILE_NAME, $constraint, $table, $field, $referenceField, $referenceTableName);
+                    break;
+                default:
+                    return Constant::STATUS_FALSE;
+            }
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return Constant::STATUS_TRUE;
     }
 
     /**
@@ -254,24 +241,24 @@ class AuditService
      * @param string $constrainName
      * @param string $tableName
      * @param string $fieldName
-     * @param string $referenceField
-     * @param string $referenceTableName
+     * @param string|null $referenceField
+     * @param string|null $referenceTableName
      * @return bool
      */
     public function migrateConstrain(
-        string $fileName,
-        string $constrainName,
-        string $tableName,
-        string $fieldName,
-        string $referenceField = null,
-        string $referenceTableName = null
-    ): bool {
+        string $fileName, string $constrainName,
+        string $tableName, string $fieldName,
+        string $referenceField = null, string $referenceTableName = null): bool
+    {
         try {
             $dataType = $this->getFieldDataType($tableName, $fieldName);
+            $fieldDataType = Constant::NULL;
 
             if ($dataType) {
-                if ($dataType === "varchar") {
-                    $fieldDataType = "string";
+                if ($dataType === Constant::DATATYPE_VARCHAR) {
+                    $fieldDataType = Constant::DATATYPE_STRING;
+                } elseif ($dataType === Constant::DATATYPE_INT) {
+                    $fieldDataType = Constant::DATATYPE_INTEGER;
                 } else {
                     $fieldDataType = $dataType;
                 }
@@ -306,14 +293,13 @@ class AuditService
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-
-        return true;
+        return Constant::STATUS_TRUE;
     }
 
     /**
      * Get Field Data Type
-     * @param string
-     * @param string
+     * @param string $tableName
+     * @param string $fieldName
      * @return mixed
      */
     public function getFieldDataType(string $tableName, string $fieldName): mixed
@@ -324,12 +310,10 @@ class AuditService
 
             if (isset($dataType[0]->DATA_TYPE) && $dataType[0]->DATA_TYPE !== null) {
                 return $dataType[0]->DATA_TYPE;
-            } else {
-                return Constant::STATUS_FALSE;
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
-            return Constant::STATUS_FALSE;
         }
+        return Constant::STATUS_FALSE;
     }
 }

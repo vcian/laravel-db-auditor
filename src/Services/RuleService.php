@@ -11,17 +11,16 @@ class RuleService
     /**
      * @var array
      */
-    protected $result = Constant::ARRAY_DECLARATION;
+    protected array $result;
 
     /**
-     * @param DBConnectionService
-     * @param NamingRuleService
-     * @param TableReadService
+     * @param DBConnectionService $dBConnectionService
+     * @param NamingRuleService $namingRuleService
      */
     public function __construct(
         protected DBConnectionService $dBConnectionService,
-        protected NamingRuleService $namingRuleService
-    ) {
+        protected NamingRuleService   $namingRuleService)
+    {
     }
 
     /**
@@ -36,7 +35,7 @@ class RuleService
             foreach ($tableList as $tableName) {
                 $status = $this->checkStatus($tableName);
                 $size = $this->getTableSize($tableName);
-                array_push($checkTableStandard, ["name" => $tableName, "status" => $status, "size" => $size]);
+                $checkTableStandard[] = ["name" => $tableName, "status" => $status, "size" => $size];
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -56,8 +55,8 @@ class RuleService
         if (!empty($tableCheck)) {
             $status = Constant::STATUS_FALSE;
         } else {
-            $filedsDetails = $this->fieldRules($tableName);
-            foreach ($filedsDetails as $field) {
+            $filedDetails = $this->fieldRules($tableName);
+            foreach ($filedDetails as $field) {
                 if (!empty($field)) {
                     $status = Constant::STATUS_FALSE;
                 }
@@ -67,42 +66,12 @@ class RuleService
     }
 
     /**
-     * Get Table Size
-     * @param string $tableName
-     * @return string $size
-     */
-    public function getTableSize(string $tableName)
-    {
-        $tableSize = $this->dBConnectionService->getTableSize($tableName);
-        return $tableSize;
-    }
-
-    /**
-     * Check field rules
-     * @param string $tableName
-     * @return array
-     */
-    public function fieldRules($tableName): array
-    {
-        $checkFields = Constant::ARRAY_DECLARATION;
-        try {
-            $filedsDetails = $this->dBConnectionService->getFields($tableName);
-            foreach ($filedsDetails as $field) {
-                $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $checkFields;
-    }
-
-    /**
      * Check Rules for Fields and Tables
      * @param string $name
-     * @param string $type
+     * @param string|null $type
      * @return array
      */
-    public function checkRules($name, $type = null): array
+    public function checkRules(string $name, string $type = null): array
     {
         $messages = Constant::ARRAY_DECLARATION;
         try {
@@ -119,20 +88,20 @@ class RuleService
                 }
 
                 if ($checkNamePlural !== Constant::STATUS_TRUE) {
-                    $messages[] = __('Lang::messages.standard.error_message.plural')." ( ".$checkNamePlural." )";
+                    $messages[] = __('Lang::messages.standard.error_message.plural') . " ( " . $checkNamePlural . " )";
                 }
             }
 
             if ($checkSpace !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.space')." ( ".$checkSpace." )";
+                $messages[] = __('Lang::messages.standard.error_message.space') . " ( " . $checkSpace . " )";
             }
 
             if ($checkAlphabets !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.alphabets')." ( ".$checkAlphabets." )";
+                $messages[] = __('Lang::messages.standard.error_message.alphabets') . " ( " . $checkAlphabets . " )";
             }
-            
+
             if ($checkLowerCase !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.lowercase')." ( ".$checkLowerCase." )";
+                $messages[] = __('Lang::messages.standard.error_message.lowercase') . " ( " . $checkLowerCase . " )";
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -142,27 +111,57 @@ class RuleService
     }
 
     /**
+     * Check field rules
+     * @param string $tableName
+     * @return array
+     */
+    public function fieldRules(string $tableName): array
+    {
+        $checkFields = Constant::ARRAY_DECLARATION;
+        try {
+            $filedDetails = $this->dBConnectionService->getFields($tableName);
+            foreach ($filedDetails as $field) {
+                $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
+            }
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return $checkFields;
+    }
+
+    /**
+     * Get Table Size
+     * @param string $tableName
+     * @return string
+     */
+    public function getTableSize(string $tableName): string
+    {
+        return $this->dBConnectionService->getTableSize($tableName);
+    }
+
+    /**
      * Check rules for single table and check table exist or not
      * @param string $tableName
-     * @return mixed
+     * @return array|bool
      */
-    public function tableRules($tableName): mixed
+    public function tableRules(string $tableName): array|bool
     {
         $checkTableStatus = Constant::ARRAY_DECLARATION;
         try {
             if ($tableName) {
                 $tableExist = $this->dBConnectionService->checkTableExist($tableName);
+
                 if (!$tableExist) {
                     return Constant::STATUS_FALSE;
                 }
+
                 $fields = $this->fieldRules($tableName);
                 $tableComment = $this->checkRules($tableName, Constant::TABLE_RULES);
-                $checkTableStatus = ["table" => $tableName,  "table_comment" => $tableComment, "fields" => $fields];
+                $checkTableStatus = ["table" => $tableName, "table_comment" => $tableComment, "fields" => $fields];
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        // dd($checkTableStatus);
         return $checkTableStatus;
     }
 }

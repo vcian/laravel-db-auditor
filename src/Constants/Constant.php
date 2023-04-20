@@ -38,4 +38,13 @@ class Constant
 
     public const STANDARD_COMMAND = 'STANDARD';
     public const CONSTRAINT_COMMAND = 'CONSTRAINT';
+    public const NULL = null;
+    public const NUMERIC_PATTERN = '/[0-9]+/';
+
+    // Datatype List
+    public const DATATYPE_VARCHAR =  'varchar';
+    public const DATATYPE_STRING =  'string';
+    public const DATATYPE_INT = 'int';
+    public const DATATYPE_INTEGER = 'integer';
+
 }

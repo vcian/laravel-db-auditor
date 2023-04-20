@@ -7,7 +7,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Services\AuditService;
-
 use function Termwind\{render};
 use function Termwind\{renderUsing};
 
@@ -18,7 +17,7 @@ class DBConstraintCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'db:constraint {table?}';
+    protected $signature = 'db:constraint';
 
     /**
      * The console command description.
@@ -29,11 +28,11 @@ class DBConstraintCommand extends Command
 
     /**
      * Execute the console command.
-     * @param AuditService
      */
-    public function handle(AuditService $auditService)
+    public function handle(): int|string
     {
         try {
+            $auditService = app(AuditService::class);
 
             $tableName = $this->components->choice(
                 __('Lang::messages.constraint.question.table_selection'),
@@ -67,7 +66,7 @@ class DBConstraintCommand extends Command
 
                                 if ($tableHasValue) {
                                     $continue = Constant::STATUS_FALSE;
-                                    
+
                                     $this->errorMessage(__('Lang::messages.constraint.error_message.constraint_not_apply', ['constraint' => strtolower($selectConstrain)]));
                                 }
                             }
@@ -118,9 +117,9 @@ class DBConstraintCommand extends Command
      * @param string $tableName
      * @return void
      */
-    public function displayTable(string $tableName) :  void
+    public function displayTable(string $tableName): void
     {
-        $auditService = resolve(AuditService::class);
+        $auditService = app(AuditService::class);
 
         $data = [
             "table" => $tableName,
@@ -139,79 +138,65 @@ class DBConstraintCommand extends Command
     }
 
     /**
-     * Display success messages
-     * @param string $message
-     */
-    public function successMessage(string $message) : void
-    {
-        render('<pre class="text-green">
-                               .-"""-.
-                              / .===. \
-                              \/ 6 6 \/
-                              ( \___/ )
-          _________________ooo_\_____/______________________
-         /                                                  \
-        |   '. $message .'   |
-         \______________________________ooo_________________/
-                               |  |  |
-                               |_ | _|
-                               |  |  |
-                               |__|__|
-                               /-`Y`-\
-                              (__/ \__)
-        </pre>');
-    }
-
-    /**
      * Display error messages
      * @param string $message
      */
-    public function errorMessage(string $message) : void
+    public function errorMessage(string $message): void
     {
-        render('<pre class="text-center text-red">
-        *********************************************************************
-                                        
-                    '. $message .'      
-
-        *********************************************************************
-        </pre>');
+        render(view('DBAuditor::error_message', ['message' => $message]));
     }
 
-    public function foreignKeyConstraint(string $tableName, string $selectField)
+    /**
+     * Display success messages
+     * @param string $message
+     */
+    public function successMessage(string $message): void
     {
-        $auditService = resolve(AuditService::class);
-     
+        render(view('DBAuditor::success_message', ['message' => $message]));
+    }
+
+    /**
+     * Get Foreign Key Constrain
+     * @param string $tableName
+     * @param string $selectField
+     * @return void
+     */
+    public function foreignKeyConstraint(string $tableName, string $selectField): void
+    {
+        $auditService = app(AuditService::class);
+        $referenceField = Constant::NULL;
+
         $referenceTable = $this->ask(__('Lang::messages.constraint.question.foreign_table'));
-            
-        if($auditService->checkTableExistOrNot($referenceTable)) {
+
+        if ($auditService->checkTableExistOrNot($referenceTable)) {
             $referenceField = $this->ask(__('Lang::messages.constraint.question.foreign_field'));
-            if(!$auditService->checkFieldExistOrNot($referenceTable, $referenceField)) {
+            if (!$auditService->checkFieldExistOrNot($referenceTable, $referenceField)) {
                 $this->errorMessage("Foreign field not found.");
-            } 
+            }
         } else {
             $this->errorMessage("Foreign table not found.");
         }
-        
+
         $referenceFieldType = $auditService->getFieldDataType($referenceTable, $referenceField);
         $selectedFieldType = $auditService->getFieldDataType($tableName, $selectField);
-        
-        if($referenceFieldType !== $selectedFieldType) {
 
-            render(' 
+        if ($referenceFieldType !== $selectedFieldType) {
+
+            render('
             <div class="mt-1">
                 <div class="flex space-x-1">
-                    <span class="font-bold text-green">'.$selectedFieldType.'</span>
-                    <i class="text-blue">'. $selectField .'</i>
+                    <span class="font-bold text-green">' . $selectedFieldType . '</span>
+                    <i class="text-blue">' . $selectField . '</i>
                     <span class="flex-1 content-repeat-[.] text-gray"></span>
-                    <i class="text-blue">'. $referenceField .'</i>
-                    <span class="font-bold text-green">'. $referenceFieldType .'</span>
+                    <i class="text-blue">' . $referenceField . '</i>
+                    <span class="font-bold text-green">' . $referenceFieldType . '</span>
                 </div>
             </div>
             ');
 
-            return $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_not_apply')); 
+            $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_not_apply'));
         }
-        
+
         $auditService->addConstraint($tableName, $selectField, Constant::CONSTRAINT_FOREIGN_KEY, $referenceTable, $referenceField);
     }
 }
