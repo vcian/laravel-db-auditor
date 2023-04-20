@@ -47,4 +47,14 @@ class Constant
     public const DATATYPE_INT = 'int';
     public const DATATYPE_INTEGER = 'integer';
 
+    public const RESTRICT_DATATYPE = [
+        'timestamp',
+        'date',
+        'datetime',
+        'json',
+        'text',
+        'longtext',
+        'mediumtext'
+    ];
+
 }

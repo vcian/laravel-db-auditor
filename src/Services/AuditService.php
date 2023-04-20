@@ -84,7 +84,7 @@ class AuditService
             WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_KEY` = '' ");
 
             foreach ($fieldList as $field) {
-                if ((!str_contains($field->DATA_TYPE, "timestamp")) && (!str_contains($field->DATA_TYPE, "date")) && (!str_contains($field->DATA_TYPE, "datetime"))) {
+                if(!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
                     if (str_contains($field->DATA_TYPE, "int")) {
                         $fields['integer'][] = $field->COLUMN_NAME;
                     } else {
