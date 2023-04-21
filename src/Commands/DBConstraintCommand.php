@@ -13,6 +13,11 @@ use function Termwind\{renderUsing};
 class DBConstraintCommand extends Command
 {
     /**
+     * @var bool
+     */
+    protected bool $skip = Constant::STATUS_FALSE;
+
+    /**
      * The name and signature of the console command.
      *
      * @var string
@@ -43,66 +48,29 @@ class DBConstraintCommand extends Command
 
             if ($tableName) {
 
-                $flag = Constant::STATUS_TRUE;
+                $continue = Constant::STATUS_TRUE;
 
                 do {
-                    $continue = Constant::STATUS_TRUE;
                     $noConstraintFields = $auditService->getNoConstraintFields($tableName);
                     $constraintList = $auditService->getConstraintList($tableName, $noConstraintFields);
 
-                    if ($noConstraintFields) {
-
-                        $userInput = $this->confirm(__('Lang::messages.constraint.question.continue'));
-
-                        if ($userInput) {
-
-                            $selectConstrain = $this->choice(
-                                __('Lang::messages.constraint.question.constraint_selection'),
-                                $constraintList
-                            );
-
-                            if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY || $selectConstrain === Constant::CONSTRAINT_UNIQUE_KEY) {
-                                $tableHasValue = $auditService->tableHasValue($tableName);
-
-                                if ($tableHasValue) {
-                                    $continue = Constant::STATUS_FALSE;
-
-                                    $this->errorMessage(__('Lang::messages.constraint.error_message.constraint_not_apply', ['constraint' => strtolower($selectConstrain)]));
-                                }
-                            }
-
-                            if ($continue) {
-
-                                if ($selectConstrain === Constant::CONSTRAINT_PRIMARY_KEY || $selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
-                                    $fields = $noConstraintFields['integer'];
-                                } else {
-                                    $fields = $noConstraintFields['mix'];
-                                }
-
-                                $selectField = $this->choice(
-                                    __('Lang::messages.constraint.question.field_selection') . ' ' . strtolower($selectConstrain) . ' key',
-                                    $fields
-                                );
-
-                                if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
-                                    $this->foreignKeyConstraint($tableName, $selectField);
-                                } else {
-                                    $auditService->addConstraint($tableName, $selectField, $selectConstrain);
-                                }
-
-                                renderUsing($this->output);
-
-                                $this->successMessage(__('Lang::messages.constraint.success_message.constraint_added'));
-
-                                $this->displayTable($tableName);
-                            }
-                        } else {
-                            $flag = Constant::STATUS_FALSE;
-                        }
-                    } else {
-                        $flag = Constant::STATUS_FALSE;
+                    if (!$noConstraintFields) {
+                        $continue = Constant::STATUS_FALSE;
                     }
-                } while ($flag === Constant::STATUS_TRUE);
+
+                    if ($this->confirm(__('Lang::messages.constraint.question.continue'))) {
+
+                        $selectConstrain = $this->choice(
+                            __('Lang::messages.constraint.question.constraint_selection'),
+                            $constraintList
+                        );
+
+                        $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
+                    } else {
+                        $continue = Constant::STATUS_FALSE;
+                    }
+
+                } while ($continue === Constant::STATUS_TRUE);
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -143,6 +111,7 @@ class DBConstraintCommand extends Command
      */
     public function errorMessage(string $message): void
     {
+        $this->skip = Constant::STATUS_TRUE;
         render(view('DBAuditor::error_message', ['message' => $message]));
     }
 
@@ -164,21 +133,39 @@ class DBConstraintCommand extends Command
     public function foreignKeyConstraint(string $tableName, string $selectField): void
     {
         $auditService = app(AuditService::class);
+        $foreignContinue = Constant::STATUS_FALSE;
         $referenceField = Constant::NULL;
+        $fields = Constant::ARRAY_DECLARATION;
 
-        $referenceTable = $this->ask(__('Lang::messages.constraint.question.foreign_table'));
+        do {
+            $referenceTable = $this->anticipate(__('Lang::messages.constraint.question.foreign_table'), $auditService->getTablesList());
 
-        if ($auditService->checkTableExistOrNot($referenceTable)) {
-            $referenceField = $this->ask(__('Lang::messages.constraint.question.foreign_field'));
-            if (!$auditService->checkFieldExistOrNot($referenceTable, $referenceField)) {
-                $this->errorMessage("Foreign field not found.");
+            if ($referenceTable && $auditService->checkTableExistOrNot($referenceTable)) {
+
+                foreach ($auditService->getTableFields($referenceTable) as $field) {
+                    $fields[] = $field->COLUMN_NAME;
+                }
+                do {
+                    $referenceField = $this->anticipate(__('Lang::messages.constraint.question.foreign_field'), $fields);
+
+                    if (!$referenceField || !$auditService->checkFieldExistOrNot($referenceTable, $referenceField)) {
+                        $this->errorMessage(__('Lang::messages.constraint.error_message.field_not_found'));
+                    } else {
+                        $foreignContinue = Constant::STATUS_TRUE;
+                    }
+                } while ($foreignContinue === Constant::STATUS_FALSE);
+
+            } else {
+                $this->errorMessage(__('Lang::messages.constraint.error_message.table_not_found'));
             }
-        } else {
-            $this->errorMessage("Foreign table not found.");
-        }
+        } while ($foreignContinue === Constant::STATUS_FALSE);
 
         $referenceFieldType = $auditService->getFieldDataType($referenceTable, $referenceField);
         $selectedFieldType = $auditService->getFieldDataType($tableName, $selectField);
+
+        if ($referenceTable === $tableName) {
+            $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_selected_table_match', ['foreign' => $referenceTable, 'selected' => $tableName]));
+        }
 
         if ($referenceFieldType !== $selectedFieldType) {
 
@@ -193,10 +180,57 @@ class DBConstraintCommand extends Command
                 </div>
             </div>
             ');
-
             $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_not_apply'));
+        } else {
+            $auditService->addConstraint($tableName, $selectField, Constant::CONSTRAINT_FOREIGN_KEY, $referenceTable, $referenceField);
+        }
+    }
+
+    /**
+     * @param string $selectConstrain
+     * @param array $noConstraintFields
+     * @param string $tableName
+     * @return void
+     */
+    public function selectedConstraint(string $selectConstrain, array $noConstraintFields, string $tableName): void
+    {
+
+        $auditService = app(AuditService::class);
+
+        if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY || $selectConstrain === Constant::CONSTRAINT_UNIQUE_KEY) {
+            $tableHasValue = $auditService->tableHasValue($tableName);
+
+            if ($tableHasValue) {
+                $this->errorMessage(__('Lang::messages.constraint.error_message.constraint_not_apply', ['constraint' => strtolower($selectConstrain)]));
+            }
         }
 
-        $auditService->addConstraint($tableName, $selectField, Constant::CONSTRAINT_FOREIGN_KEY, $referenceTable, $referenceField);
+        if (!$this->skip) {
+            if ($selectConstrain === Constant::CONSTRAINT_PRIMARY_KEY || $selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
+                $fields = $noConstraintFields['integer'];
+            } else {
+                $fields = $noConstraintFields['mix'];
+            }
+
+            $selectField = $this->choice(
+                __('Lang::messages.constraint.question.field_selection') . ' ' . strtolower($selectConstrain) . ' key',
+                $fields
+            );
+
+            if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
+                $this->foreignKeyConstraint($tableName, $selectField);
+            } else {
+                $auditService->addConstraint($tableName, $selectField, $selectConstrain);
+            }
+        }
+
+        if (!$this->skip) {
+            renderUsing($this->output);
+
+            $this->successMessage(__('Lang::messages.constraint.success_message.constraint_added'));
+
+            $this->displayTable($tableName);
+        }
+
     }
 }

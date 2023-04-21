@@ -29,13 +29,16 @@ return [
         ],
         'error_message' => [
             'constraint_not_apply' => 'Can not apply :constraint key | Please truncate table',
-            'foreign_not_apply' => 'Columns must have the same data type'
+            'foreign_not_apply' => 'Columns must have the same data type',
+            'table_not_found' => 'Foreign table not found.',
+            'field_not_found' => 'Foreign field not found.',
+            'foreign_selected_table_match' => "Can't add constraint because foreign :foreign table and selected :selected table match."
         ]
     ],
     'standard' => [
         'error_message' => [
             'length' => 'Table name should not be more than 64 characters',
-            'plural' => 'Table name should be Plural',
+            'plural' => 'Table name should be plural',
             'space' => 'Space between words is not advised. Please Use Underscore "_"',
             'alphabets' => 'Numbers are not for names and is not advised! Please use alphabets for name',
             'lowercase' => 'Name should be lowercase'
