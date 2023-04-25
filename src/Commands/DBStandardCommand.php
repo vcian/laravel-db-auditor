@@ -40,7 +40,7 @@ class DBStandardCommand extends Command
         $continue = Constant::STATUS_TRUE;
 
         do {
-            $tableName = $this->ask('Please select table if you want to see the report');
+            $tableName = $this->ask('Please enter table name if you want to see the table report');
 
             $tableStatus = $ruleService->tableRules($tableName);
 
