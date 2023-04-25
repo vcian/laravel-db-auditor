@@ -27,7 +27,7 @@ class DBAuditCommand extends Command
      */
     public function handle(): void
     {
-        $commandSelect = $this->choice('Please Select', [Constant::STANDARD_COMMAND, Constant::CONSTRAINT_COMMAND]);
+        $commandSelect = $this->choice('Please Select feature which would you like to do', [Constant::STANDARD_COMMAND, Constant::CONSTRAINT_COMMAND]);
 
         if ($commandSelect === Constant::STANDARD_COMMAND) {
             $this->call('db:standard');

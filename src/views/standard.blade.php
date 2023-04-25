@@ -5,7 +5,7 @@
     @endphp
     <div class="mt-1">
         <div class="flex space-x-1">
-            <span class="font-bold text-green">Fields</span>
+            <span class="font-bold text-green">TABLE NAME</span>
             <span class="flex-1 content-repeat-[.] text-gray"></span>
             <span class="font-bold">Standardization</span>
         </div>
@@ -25,11 +25,11 @@
         @endforeach
         <div class="mt-1">
             <span class="text-black ml-5 px-2 bg-green">{{ $success }}</span> <span class="text-green ml-1"> TABLE
-                SUCCESS</span>
+                PASS</span>
         </div>
         <div class="mt-1">
             <span class="text-white ml-5 px-2 bg-red">{{ $error }}</span> <span class="text-red ml-1"> TABLE
-                ERROR</span>
+                FAILED</span>
         </div>
     </div>
 </div>
