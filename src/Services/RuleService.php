@@ -88,20 +88,20 @@ class RuleService
                 }
 
                 if ($checkNamePlural !== Constant::STATUS_TRUE) {
-                    $messages[] = __('Lang::messages.standard.error_message.plural') . " ( " . $checkNamePlural . " )";
+                    $messages[$checkNamePlural] = __('Lang::messages.standard.error_message.plural');
                 }
             }
 
+            if ($checkLowerCase !== Constant::STATUS_TRUE) {
+                $messages[$checkLowerCase] = __('Lang::messages.standard.error_message.lowercase');
+            }
+
             if ($checkSpace !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.space') . " ( " . $checkSpace . " )";
+                $messages[$checkSpace] = __('Lang::messages.standard.error_message.space');
             }
 
             if ($checkAlphabets !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.alphabets') . " ( " . $checkAlphabets . " )";
-            }
-
-            if ($checkLowerCase !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.lowercase') . " ( " . $checkLowerCase . " )";
+                $messages[$checkAlphabets] = __('Lang::messages.standard.error_message.alphabets');
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());

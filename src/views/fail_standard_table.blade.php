@@ -1,14 +1,15 @@
 <div class="mt-1">
     TABLE NAME : <span
-        class="px-2 font-bold bg-blue text-white"> {{ str_replace("_", ' ', strtoupper($tableStatus['table'])) }} </span>
+        class="px-2 font-bold bg-blue text-white"> {{ str_replace("_", ' ', $tableStatus['table']) }} </span>
     @if ($tableStatus['table_comment'])
         <div class="mt-0">
-            <span class="text-yellow mt-1">Suggestion(s)</span>
+            <span class="text-yellow mt-1">suggestion(s)</span>
         </div>
         <ol class='mt-1 ml-1'>
-            @foreach ($tableStatus['table_comment'] as $comment)
+            @foreach ($tableStatus['table_comment'] as $commentKey => $comment)
                 <li>
-                    <span class="text-red">{{ $comment }}</span>
+                    <span class="text-red">{{ $comment }} </span>
+                    <span class="text-green">( {{ $commentKey }} )</span>
                 </li>
             @endforeach
         </ol>
@@ -17,9 +18,9 @@
         <table class="w-full">
             <thead>
             <tr>
-                <th> Field Name</th>
-                <th> Standard Status</th>
-                <th> Suggestion(s)</th>
+                <th> field name</th>
+                <th> standard status</th>
+                <th> suggestion(s)</th>
             </tr>
             </thead>
             <tbody>
@@ -28,11 +29,11 @@
                     @if (!empty($field))
                         <td class="text-red">{{ $key }}</td>
                         <td class="text-red">✗</td>
-                        @foreach ($field as $fieldComment)
+                        @foreach ($field as $solution =>$fieldComment)
                             <tr>
                                 <td></td>
                                 <td></td>
-                                <td class="text-yellow">👉 {{ $fieldComment }} </td>
+                                <td class="text-green">👉 {{ $fieldComment }} ( {{ $solution }} ) </td>
                             </tr>
                         @endforeach
                     @else

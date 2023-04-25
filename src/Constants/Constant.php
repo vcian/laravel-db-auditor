@@ -4,7 +4,7 @@ namespace Vcian\LaravelDBAuditor\Constants;
 
 /**
  * Class Constants
- * @package dbplayground\Constants
+ * @package dbauditor\Constants
  */
 class Constant
 {
@@ -42,9 +42,19 @@ class Constant
     public const NUMERIC_PATTERN = '/[0-9]+/';
 
     // Datatype List
-    public const DATATYPE_VARCHAR =  'varchar';
-    public const DATATYPE_STRING =  'string';
+    public const DATATYPE_VARCHAR = 'varchar';
+    public const DATATYPE_STRING = 'string';
     public const DATATYPE_INT = 'int';
     public const DATATYPE_INTEGER = 'integer';
+
+    public const RESTRICT_DATATYPE = [
+        'timestamp',
+        'date',
+        'datetime',
+        'json',
+        'text',
+        'longtext',
+        'mediumtext'
+    ];
 
 }
