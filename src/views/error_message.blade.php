@@ -1,5 +1,3 @@
 <div class="mt-1">
-    <div class="space-x-1">
-        <span class="px-5 bg-red text-white">{{ $message }}</span>
-    </div>
+    <span class="px-5 pt-2 pb-2 bg-red text-white text-center">{{ $message }}</span>
 </div>

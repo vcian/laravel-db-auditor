@@ -32,7 +32,7 @@ class DBStandardCommand extends Command
         $tableStatus = $ruleService->tablesRule();
 
         if (!$tableStatus) {
-            render(view('DBAuditor::error_message', ['message' => '😢 No Table Found 😩']));
+            render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
         }
 
         render(view('DBAuditor::standard', ['tableStatus' => $tableStatus]));
@@ -42,10 +42,14 @@ class DBStandardCommand extends Command
         do {
             $tableName = $this->ask('Please enter table name if you want to see the table report');
 
+            if (empty($tableName)) {
+                return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
+            }
+
             $tableStatus = $ruleService->tableRules($tableName);
 
             if (!$tableStatus) {
-                return render(view('DBAuditor::error_message', ['message' => '😢 No Table Found 😩']));
+                return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
             } else {
                 render(view('DBAuditor::fail_standard_table', ['tableStatus' => $tableStatus]));
             }

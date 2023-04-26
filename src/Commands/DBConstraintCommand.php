@@ -60,6 +60,7 @@ class DBConstraintCommand extends Command
 
                     if ($this->confirm(__('Lang::messages.constraint.question.continue'))) {
 
+                        $this->skip = Constant::STATUS_FALSE;
                         $selectConstrain = $this->choice(
                             __('Lang::messages.constraint.question.constraint_selection'),
                             $constraintList
