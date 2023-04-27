@@ -198,7 +198,7 @@ class DBConstraintCommand extends Command
 
         $auditService = app(AuditService::class);
 
-        if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY || $selectConstrain === Constant::CONSTRAINT_UNIQUE_KEY) {
+        if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
             $tableHasValue = $auditService->tableHasValue($tableName);
 
             if ($tableHasValue) {
@@ -213,15 +213,24 @@ class DBConstraintCommand extends Command
                 $fields = $noConstraintFields['mix'];
             }
 
-            $selectField = $this->choice(
-                __('Lang::messages.constraint.question.field_selection') . ' ' . strtolower($selectConstrain) . ' key',
-                $fields
-            );
+            if($selectConstrain === Constant::CONSTRAINT_UNIQUE_KEY) {
+                $fields =  $auditService->getUniqueFields($tableName, $noConstraintFields['mix']);
+                if (empty($fields)) {
+                    $this->errorMessage(__('Lang::messages.constraint.error_message.unique_constraint_not_apply'));
+                }
+            }
 
-            if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
-                $this->foreignKeyConstraint($tableName, $selectField);
-            } else {
-                $auditService->addConstraint($tableName, $selectField, $selectConstrain);
+            if (!$this->skip) {
+                $selectField = $this->choice(
+                    __('Lang::messages.constraint.question.field_selection') . ' ' . strtolower($selectConstrain) . ' key',
+                    $fields
+                );
+
+                if ($selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
+                    $this->foreignKeyConstraint($tableName, $selectField);
+                } else {
+                    $auditService->addConstraint($tableName, $selectField, $selectConstrain);
+                }
             }
         }
 

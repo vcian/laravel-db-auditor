@@ -1,6 +1,5 @@
 <div class="mt-1">
-    TABLE NAME : <span
-        class="px-2 font-bold bg-blue text-white"> {{ str_replace("_", ' ', $tableStatus['table']) }} </span>
+    TABLE NAME : <span class="px-2 font-bold bg-blue text-white"> {{ str_replace("_", ' ', $tableStatus['table']) }} </span>
     @if ($tableStatus['table_comment'])
         <div class="mt-0">
             <span class="text-white mt-1">suggestion(s)</span>
@@ -8,7 +7,7 @@
         <ol class='mt-1 ml-1'>
             @foreach ($tableStatus['table_comment'] as $commentKey => $comment)
                 <li>
-                    <span class="text-yellow">{{ $comment }} </span>
+                    <span class="text-yellow">{{ $comment }}</span>
                     <span class="text-green">( {{ $commentKey }} )</span>
                 </li>
             @endforeach
@@ -33,7 +32,7 @@
                     <tr>
                         <td></td>
                         <td></td>
-                        <td class="text-yellow">👉 {{ $fieldComment }} ( {{ $solution }} )</td>
+                        <td class="text-yellow flex">👉 {{ $fieldComment }} {{ $solution !== "" ? '(' .$solution. ')' : null }} </td>
                     </tr>
                 @endforeach
                 @else

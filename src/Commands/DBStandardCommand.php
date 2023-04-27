@@ -40,7 +40,7 @@ class DBStandardCommand extends Command
         $continue = Constant::STATUS_TRUE;
 
         do {
-            $tableName = $this->ask('Please enter table name if you want to see the table report');
+            $tableName = $this->anticipate('Please enter table name if you want to see the table report', $ruleService->getTableList());
 
             if (empty($tableName)) {
                 return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));

@@ -42,7 +42,7 @@ class DBConnectionService
     {
         $fields = Constant::ARRAY_DECLARATION;
         try {
-            $fieldDetails = DB::select("Describe {$tableName}");
+            $fieldDetails = DB::select("Describe `$tableName`");
             foreach ($fieldDetails as $field) {
                 $fields[] = $field->Field;
             }
@@ -107,6 +107,27 @@ class DBConnectionService
                 return $result[0]->size;
             }
 
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return Constant::STATUS_FALSE;
+    }
+
+    /**
+     * Get Field Data Type
+     * @param string $tableName
+     * @param string $fieldName
+     * @return array|bool
+     */
+    public function getFieldDataType(string $tableName, string $fieldName): array|bool
+    {
+        try {
+            $dataType = DB::select("SELECT `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`  FROM `INFORMATION_SCHEMA`.`COLUMNS`
+            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ");
+
+            if (isset($dataType[0]->DATA_TYPE) && $dataType[0]->DATA_TYPE !== null) {
+                return ['data_type' => $dataType[0]->DATA_TYPE, 'size' => $dataType[0]->CHARACTER_MAXIMUM_LENGTH];
+            }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }

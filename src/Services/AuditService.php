@@ -87,7 +87,10 @@ class AuditService
                 if (!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
                     if (str_contains($field->DATA_TYPE, "int")) {
                         $fields['integer'][] = $field->COLUMN_NAME;
-                    } else {
+                    }
+                    $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $field->COLUMN_NAME);
+                    
+                    if($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
                         $fields['mix'][] = $field->COLUMN_NAME;
                     }
                 }
@@ -109,7 +112,10 @@ class AuditService
         $constrainList = Constant::ARRAY_DECLARATION;
 
         if (!empty($fields['integer'])) {
-            $constrainList[] = Constant::CONSTRAINT_FOREIGN_KEY;
+
+            if(!$this->tableHasValue($tableName)) {
+                $constrainList[] = Constant::CONSTRAINT_FOREIGN_KEY;
+            }
 
             if (empty($this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY))) {
                 $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
@@ -118,7 +124,10 @@ class AuditService
 
         if (!empty($fields['mix'])) {
             $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
-            $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
+
+            if(!empty($this->getUniqueFields($tableName, $fields['mix']))) {
+                $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
+            }
         }
         return $constrainList;
     }
@@ -254,16 +263,16 @@ class AuditService
         string $referenceField = null, string $referenceTableName = null): bool
     {
         try {
-            $dataType = $this->getFieldDataType($tableName, $fieldName);
+            $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $fieldName);
             $fieldDataType = Constant::NULL;
 
-            if ($dataType) {
-                if ($dataType === Constant::DATATYPE_VARCHAR) {
+            if (!empty($fieldDetails['data_type'])) {
+                if ($fieldDetails['data_type'] === Constant::DATATYPE_VARCHAR) {
                     $fieldDataType = Constant::DATATYPE_STRING;
-                } elseif ($dataType === Constant::DATATYPE_INT) {
+                } elseif ($fieldDetails['data_type'] === Constant::DATATYPE_INT) {
                     $fieldDataType = Constant::DATATYPE_INTEGER;
                 } else {
-                    $fieldDataType = $dataType;
+                    $fieldDataType = $fieldDetails['data_type'];
                 }
             }
 
@@ -272,7 +281,8 @@ class AuditService
                 "fieldName" => $fieldName,
                 "referenceField" => $referenceField,
                 "referenceTable" => $referenceTableName,
-                "dataType" => $fieldDataType
+                "dataType" => $fieldDataType,
+                'length' => $fieldDetails['size'],
             ];
 
             $contents = file_get_contents(__DIR__ . "/../Database/migrations/" . $fileName);
@@ -290,7 +300,6 @@ class AuditService
             File::put(database_path("/migrations/" . $time . "_update_" . $tableName . "_" . $fieldName . "_" . strtolower($constrainName) . ".php"), $contents);
 
             Artisan::call("migrate", [
-                '--force' => true,
                 '--path' => "database/migrations/" . $time . "_update_" . $tableName . "_" . $fieldName . "_" . strtolower($constrainName) . ".php"
             ]);
         } catch (Exception $exception) {
@@ -300,23 +309,27 @@ class AuditService
     }
 
     /**
-     * Get Field Data Type
+     * Get Unique Fields
      * @param string $tableName
-     * @param string $fieldName
-     * @return mixed
+     * @param array $fields
+     * @return array
      */
-    public function getFieldDataType(string $tableName, string $fieldName): mixed
+    public function getUniqueFields(string $tableName, array $fields): array
     {
+        $uniqueField = Constant::ARRAY_DECLARATION;
         try {
-            $dataType = DB::select("SELECT `DATA_TYPE` FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ");
+            foreach ($fields as $field) {
+                $query = "SELECT `". $field ."`, COUNT(`". $field ."`) as count FROM ".$tableName." GROUP BY `".$field."` HAVING COUNT(`".$field."`) > 1";
+                $result = DB::select($query);
 
-            if (isset($dataType[0]->DATA_TYPE) && $dataType[0]->DATA_TYPE !== null) {
-                return $dataType[0]->DATA_TYPE;
+                if (empty($result)) {
+                    $uniqueField[] = $field;
+                }
             }
+
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        return Constant::STATUS_FALSE;
+        return $uniqueField;
     }
 }
