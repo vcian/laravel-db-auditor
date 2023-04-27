@@ -43,6 +43,7 @@ class Constant
 
     // Datatype List
     public const DATATYPE_VARCHAR = 'varchar';
+    public const DATATYPE_VARCHAR_SIZE = '255';
     public const DATATYPE_STRING = 'string';
     public const DATATYPE_INT = 'int';
     public const DATATYPE_INTEGER = 'integer';

@@ -56,14 +56,14 @@ class NamingRuleService
 
     /**
      * Check name only in alphabets.
-     * @param string $tableName
+     * @param string $name
      * @return string|bool
      */
-    public function nameHasOnlyAlphabets(string $tableName): string|bool
+    public function nameHasOnlyAlphabets(string $name): string|bool
     {
-        $name = $this->removeSpecialCharacter($tableName);
+        $name = str_replace(' ', '', $this->removeSpecialCharacter($name));
         if (!ctype_alpha($name)) {
-            return $this->addSpecialCharacter(preg_replace(Constant::NUMERIC_PATTERN, '', $tableName));
+            return $this->addSpecialCharacter(preg_replace(Constant::NUMERIC_PATTERN, '', $name));
         }
         return Constant::STATUS_TRUE;
     }

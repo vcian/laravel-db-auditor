@@ -24,6 +24,15 @@ class RuleService
     }
 
     /**
+     * Get Table List
+     * @return array
+     */
+    public function getTableList() : array
+    {
+        return $this->dBConnectionService->getTableList();
+    }
+
+    /**
      * Check table name rules
      * @return array
      */
@@ -119,9 +128,18 @@ class RuleService
     {
         $checkFields = Constant::ARRAY_DECLARATION;
         try {
-            $filedDetails = $this->dBConnectionService->getFields($tableName);
-            foreach ($filedDetails as $field) {
+            $fields = $this->dBConnectionService->getFields($tableName);
+
+            foreach ($fields as $field) {
                 $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
+
+                $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $field);
+
+                if ($fieldDetails['data_type'] === Constant::DATATYPE_VARCHAR) {
+                    if($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
+                        $checkFields[$field] = ["" => __('Lang::messages.standard.error_message.datatype_change')];
+                    }
+                }
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
