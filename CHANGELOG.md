@@ -2,6 +2,13 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v1.4.0 [27th April 2023]
+
+- Unique constraint validation for duplicate values.
+- Add suggestions for varchar datatype.
+- Update messages.
+- Update UI for standard and constraint results.
+
 ## v1.3.0 [25th April 2023]
 
 - UI/UX improvement and minor bug fixings.
