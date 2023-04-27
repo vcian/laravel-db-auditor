@@ -24,12 +24,12 @@
             </div>
         @endforeach
         <div class="mt-1">
-            <span class="text-black ml-5 px-2 bg-green">{{ $success }}</span> <span class="text-green ml-1"> TABLE
-                PASSED</span>
+            <span class="px-2 bg-green ml-5 text-black">{{ $success }} </span> <span class="text-green ml-1"> TABLE
+                PASSED ✓</span>
         </div>
         <div class="mt-1">
-            <span class="text-white ml-5 px-2 bg-red">{{ $error }}</span> <span class="text-red ml-1"> TABLE
-                FAILED</span>
+            <span class="px-2 bg-red ml-5 text-white">{{ $error }}</span> <span class="text-red ml-1"> TABLE
+                FAILED ✗</span>
         </div>
     </div>
 </div>

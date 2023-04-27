@@ -115,8 +115,11 @@ class AuditService
                 $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
             }
         }
-        $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
-        $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
+
+        if (!empty($fields['mix'])) {
+            $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
+            $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
+        }
         return $constrainList;
     }
 
