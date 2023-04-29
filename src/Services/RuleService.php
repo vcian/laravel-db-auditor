@@ -101,16 +101,16 @@ class RuleService
                 }
             }
 
-            if ($checkLowerCase !== Constant::STATUS_TRUE) {
-                $messages[$checkLowerCase] = __('Lang::messages.standard.error_message.lowercase');
-            }
-
             if ($checkSpace !== Constant::STATUS_TRUE) {
                 $messages[$checkSpace] = __('Lang::messages.standard.error_message.space');
             }
 
             if ($checkAlphabets !== Constant::STATUS_TRUE) {
                 $messages[$checkAlphabets] = __('Lang::messages.standard.error_message.alphabets');
+            }
+
+            if ($checkLowerCase !== Constant::STATUS_TRUE) {
+                $messages[$checkLowerCase] = __('Lang::messages.standard.error_message.lowercase');
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
@@ -132,14 +132,6 @@ class RuleService
 
             foreach ($fields as $field) {
                 $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
-
-                $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $field);
-
-                if ($fieldDetails['data_type'] === Constant::DATATYPE_VARCHAR) {
-                    if($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
-                        $checkFields[$field] = ["" => __('Lang::messages.standard.error_message.datatype_change')];
-                    }
-                }
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
