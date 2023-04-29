@@ -2,6 +2,9 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v1.5.0 [29th April 2023]
+- Resolved naming validation rules and datatype issue.
+
 ## v1.4.0 [27th April 2023]
 
 - Unique constraint validation for duplicate values.
