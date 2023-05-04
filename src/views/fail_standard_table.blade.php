@@ -8,7 +8,6 @@
             @foreach ($tableStatus['table_comment'] as $commentKey => $comment)
                 <li>
                     <span class="text-yellow">{{ $comment }}</span>
-                    <span class="text-green">( {{ $commentKey }} )</span>
                 </li>
             @endforeach
         </ol>
