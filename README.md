@@ -38,7 +38,7 @@ If you want to check standalone feature then you can execute below artisan comma
 > 
 > You can add more constraint to the table by seeing existing constraint with table.
 > 
-> Below are example of the db:constraint and results.
+> Below example give insights about the how to see constraints in table and how to add.
 >
 
 <p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/laravel-db-auditor/db-constraint-select-table.png" width="100%" alt="Logo Laravel DB Auditor"></p>
@@ -57,8 +57,8 @@ If you want to check standalone feature then you can execute below artisan comma
 > 
 > 
 > You can also see table specific column name which doesn't have standard followed.
-> 
-> > Below are example of the db:standard and results.
+>
+> Below example give insights of database standards reports and suggestions.
 >
 >
 <p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/laravel-db-auditor/db-standard-cmd-1.png" width="100%" alt="Logo Laravel DB Auditor"></p>
