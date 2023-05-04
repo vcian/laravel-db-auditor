@@ -1,5 +1,6 @@
 <div class="mt-1">
-    TABLE NAME : <span class="px-2 font-bold bg-blue text-white"> {{ str_replace("_", ' ', $tableStatus['table']) }} </span>
+    TABLE NAME : <span
+        class="px-2 font-bold bg-blue text-white"> {{ str_replace("_", ' ', $tableStatus['table']) }} </span>
     @if ($tableStatus['table_comment'])
         <div class="mt-0">
             <span class="text-white mt-1">suggestion(s)</span>
@@ -28,11 +29,11 @@
                     @if (!empty($field))
                         <td class="text-red">{{ $key }}</td>
                         <td class="text-red">✗</td>
-                @foreach ($field as $solution =>$fieldComment)
+                @foreach ($field as $fieldComment)
                     <tr>
                         <td></td>
                         <td></td>
-                        <td class="text-yellow flex">👉 {{ $fieldComment }} {{ $solution !== "" ? '(' .$solution. ')' : null }} </td>
+                        <td class="text-yellow flex">👉 {{ $fieldComment }} </td>
                     </tr>
                 @endforeach
                 @else

@@ -52,23 +52,23 @@ class DBConstraintCommand extends Command
 
                 do {
                     $noConstraintFields = $auditService->getNoConstraintFields($tableName);
-                    $constraintList = $auditService->getConstraintList($tableName, $noConstraintFields);
 
-                    if (!$noConstraintFields) {
+                    if (empty($noConstraintFields)) {
                         $continue = Constant::STATUS_FALSE;
-                    }
-
-                    if ($this->confirm(__('Lang::messages.constraint.question.continue'))) {
-
-                        $this->skip = Constant::STATUS_FALSE;
-                        $selectConstrain = $this->choice(
-                            __('Lang::messages.constraint.question.constraint_selection'),
-                            $constraintList
-                        );
-
-                        $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
                     } else {
-                        $continue = Constant::STATUS_FALSE;
+                        if ($this->confirm(__('Lang::messages.constraint.question.continue'))) {
+
+                            $this->skip = Constant::STATUS_FALSE;
+                            $constraintList = $auditService->getConstraintList($tableName, $noConstraintFields);
+                            $selectConstrain = $this->choice(
+                                __('Lang::messages.constraint.question.constraint_selection'),
+                                $constraintList
+                            );
+
+                            $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
+                        } else {
+                            $continue = Constant::STATUS_FALSE;
+                        }
                     }
 
                 } while ($continue === Constant::STATUS_TRUE);
@@ -168,16 +168,16 @@ class DBConstraintCommand extends Command
             $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_selected_table_match', ['foreign' => $referenceTable, 'selected' => $tableName]));
         }
 
-        if ($referenceFieldType !== $selectedFieldType) {
+        if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) {
 
             render('
             <div class="mt-1">
                 <div class="flex space-x-1">
-                    <span class="font-bold text-green">' . $selectedFieldType . '</span>
+                    <span class="font-bold text-green">' . $selectedFieldType['data_type'] . '</span>
                     <i class="text-blue">' . $selectField . '</i>
                     <span class="flex-1 content-repeat-[.] text-gray"></span>
                     <i class="text-blue">' . $referenceField . '</i>
-                    <span class="font-bold text-green">' . $referenceFieldType . '</span>
+                    <span class="font-bold text-green">' . $referenceFieldType['data_type'] . '</span>
                 </div>
             </div>
             ');
@@ -213,8 +213,8 @@ class DBConstraintCommand extends Command
                 $fields = $noConstraintFields['mix'];
             }
 
-            if($selectConstrain === Constant::CONSTRAINT_UNIQUE_KEY) {
-                $fields =  $auditService->getUniqueFields($tableName, $noConstraintFields['mix']);
+            if ($selectConstrain === Constant::CONSTRAINT_UNIQUE_KEY) {
+                $fields = $auditService->getUniqueFields($tableName, $noConstraintFields['mix']);
                 if (empty($fields)) {
                     $this->errorMessage(__('Lang::messages.constraint.error_message.unique_constraint_not_apply'));
                 }

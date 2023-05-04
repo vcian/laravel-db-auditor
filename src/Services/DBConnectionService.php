@@ -125,10 +125,6 @@ class DBConnectionService
             $dataType = DB::select("SELECT `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`  FROM `INFORMATION_SCHEMA`.`COLUMNS`
             WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ")[0];
 
-            if ($dataType->DATA_TYPE === "bigint") {
-                $dataType->DATA_TYPE = "bigInteger";
-            }
-
             if (isset($dataType->DATA_TYPE) && $dataType !== null) {
                 return ['data_type' => $dataType->DATA_TYPE, 'size' => $dataType->CHARACTER_MAXIMUM_LENGTH];
             }

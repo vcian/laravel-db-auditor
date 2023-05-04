@@ -57,6 +57,16 @@ class AuditService
     }
 
     /**
+     * @param string $tableName
+     * @param string $field
+     * @return array
+     */
+    public function getFieldDataType(string $tableName, string $field): array
+    {
+        return $this->dBConnectionService->getFieldDataType($tableName, $field);
+    }
+
+    /**
      * Check field exist or not
      * @param string $tableName
      * @param string $field
@@ -88,9 +98,9 @@ class AuditService
                     if (str_contains($field->DATA_TYPE, "int")) {
                         $fields['integer'][] = $field->COLUMN_NAME;
                     }
-                    $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $field->COLUMN_NAME);
-                    
-                    if($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
+                    $fieldDetails = $this->getFieldDataType($tableName, $field->COLUMN_NAME);
+
+                    if ($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
                         $fields['mix'][] = $field->COLUMN_NAME;
                     }
                 }
@@ -113,7 +123,7 @@ class AuditService
 
         if (!empty($fields['integer'])) {
 
-            if(!$this->tableHasValue($tableName)) {
+            if (!$this->tableHasValue($tableName)) {
                 $constrainList[] = Constant::CONSTRAINT_FOREIGN_KEY;
             }
 
@@ -125,7 +135,7 @@ class AuditService
         if (!empty($fields['mix'])) {
             $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
 
-            if(!empty($this->getUniqueFields($tableName, $fields['mix']))) {
+            if (!empty($this->getUniqueFields($tableName, $fields['mix']))) {
                 $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
             }
         }
@@ -263,17 +273,11 @@ class AuditService
         string $referenceField = null, string $referenceTableName = null): bool
     {
         try {
-            $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $fieldName);
+            $fieldDetails = $this->getFieldDataType($tableName, $fieldName);
             $fieldDataType = Constant::NULL;
 
             if (!empty($fieldDetails['data_type'])) {
-                if ($fieldDetails['data_type'] === Constant::DATATYPE_VARCHAR) {
-                    $fieldDataType = Constant::DATATYPE_STRING;
-                } elseif ($fieldDetails['data_type'] === Constant::DATATYPE_INT) {
-                    $fieldDataType = Constant::DATATYPE_INTEGER;
-                } else {
-                    $fieldDataType = $fieldDetails['data_type'];
-                }
+                $fieldDataType = Constant::MYSQL_DATATYPE_TO_LARAVEL_DATATYPE[$fieldDetails['data_type']] ?? $fieldDetails['data_type'];
             }
 
             $stubVariables = [
@@ -319,7 +323,7 @@ class AuditService
         $uniqueField = Constant::ARRAY_DECLARATION;
         try {
             foreach ($fields as $field) {
-                $query = "SELECT `". $field ."`, COUNT(`". $field ."`) as count FROM ".$tableName." GROUP BY `".$field."` HAVING COUNT(`".$field."`) > 1";
+                $query = "SELECT `" . $field . "`, COUNT(`" . $field . "`) as count FROM " . $tableName . " GROUP BY `" . $field . "` HAVING COUNT(`" . $field . "`) > 1";
                 $result = DB::select($query);
 
                 if (empty($result)) {

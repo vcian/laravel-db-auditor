@@ -49,7 +49,7 @@ class NamingRuleService
     public function nameHasNoSpace(string $name): string|bool
     {
         if (str_contains($name, ' ')) {
-            return $this->addSpecialCharacter($name);
+            return strtolower($this->addSpecialCharacter($name));
         }
         return Constant::STATUS_TRUE;
     }
@@ -61,9 +61,9 @@ class NamingRuleService
      */
     public function nameHasOnlyAlphabets(string $name): string|bool
     {
-        $name = str_replace(' ', '', $this->removeSpecialCharacter($name));
-        if (!ctype_alpha($name)) {
-            return $this->addSpecialCharacter(preg_replace(Constant::NUMERIC_PATTERN, '', $name));
+        $title = str_replace(' ', '', $this->removeSpecialCharacter($name));
+        if (!ctype_alpha($title)) {
+            return strtolower($this->addSpecialCharacter(preg_replace(Constant::NUMERIC_PATTERN, '', $name)));
         }
         return Constant::STATUS_TRUE;
     }
@@ -91,7 +91,7 @@ class NamingRuleService
         $nameIdentify = explode('_', $tableNames);
         $name = $nameIdentify[0];
         if (strtolower($name) === Constant::PREFIX_STRING) {
-            return $nameIdentify[1];
+            return strtolower($nameIdentify[1]);
         }
         return Constant::STATUS_TRUE;
     }
@@ -105,7 +105,7 @@ class NamingRuleService
     {
         $pluralName = Str::plural($tableNames);
         if ($tableNames !== $pluralName) {
-            return $pluralName;
+            return strtolower($pluralName);
         }
         return Constant::STATUS_TRUE;
     }
