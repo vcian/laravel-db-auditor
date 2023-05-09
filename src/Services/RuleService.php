@@ -27,7 +27,7 @@ class RuleService
      * Get Table List
      * @return array
      */
-    public function getTableList() : array
+    public function getTableList(): array
     {
         return $this->dBConnectionService->getTableList();
     }
@@ -97,21 +97,22 @@ class RuleService
                 }
 
                 if ($checkNamePlural !== Constant::STATUS_TRUE) {
-                    $messages[$checkNamePlural] = __('Lang::messages.standard.error_message.plural');
+                    $messages[] = __('Lang::messages.standard.error_message.plural') . "($checkNamePlural)";
                 }
             }
 
-            if ($checkLowerCase !== Constant::STATUS_TRUE) {
-                $messages[$checkLowerCase] = __('Lang::messages.standard.error_message.lowercase');
-            }
-
             if ($checkSpace !== Constant::STATUS_TRUE) {
-                $messages[$checkSpace] = __('Lang::messages.standard.error_message.space');
+                $messages[] = __('Lang::messages.standard.error_message.space') . "($checkSpace)";
             }
 
             if ($checkAlphabets !== Constant::STATUS_TRUE) {
-                $messages[$checkAlphabets] = __('Lang::messages.standard.error_message.alphabets');
+                $messages[] = __('Lang::messages.standard.error_message.alphabets') . "($checkAlphabets)";
             }
+
+            if ($checkLowerCase !== Constant::STATUS_TRUE) {
+                $messages[] = __('Lang::messages.standard.error_message.lowercase') . "($checkLowerCase)";
+            }
+
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
@@ -132,13 +133,10 @@ class RuleService
 
             foreach ($fields as $field) {
                 $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
+                $dataTypeDetails = $this->dBConnectionService->getFieldDataType($tableName, $field);
 
-                $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $field);
-
-                if ($fieldDetails['data_type'] === Constant::DATATYPE_VARCHAR) {
-                    if($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
-                        $checkFields[$field] = ["" => __('Lang::messages.standard.error_message.datatype_change')];
-                    }
+                if ($dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR && $dataTypeDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
+                    $checkFields[$field][] = __('Lang::messages.standard.error_message.datatype_change');
                 }
             }
         } catch (Exception $exception) {
