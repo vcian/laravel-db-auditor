@@ -242,7 +242,7 @@
                     jQuery.ajax({
                         url: 'https://api.openai.com/v1/completions',
                         headers: {
-                            "Authorization": "Bearer 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",
+                            "Authorization": "Bearer",
                             "Content-Type": "application/json"
                         },
                         type: 'POST',
