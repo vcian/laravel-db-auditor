@@ -66,4 +66,11 @@ class Constant
         'double',
     ];
 
+    public const QUERY_LOG_FILE_PATH = '/logs/';
+    public const DEFAULT_QUERY_LOG_FILENAME = 'db-audit-queries.log';
+    public const DATE_AND_TIME_FORMAT = 'Y-m-d H:i:s';
+    public const POST = 'POST';
+    public const GET = 'GET';
+    public const SELECT = 'select';
+
 }
