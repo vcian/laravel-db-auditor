@@ -1,3 +1,5 @@
 vendor
 .idea
 composer.lock
+.phpunit.cache
+build
