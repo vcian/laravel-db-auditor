@@ -16,7 +16,7 @@
 Require Laravel DB Auditor  using [Composer](https://getcomposer.org):
 
 ```bash
-composer require vcian/laravel-db-auditor
+composer require vcian/laravel-db-auditor -dev
 ```
 ## Usage:
 
