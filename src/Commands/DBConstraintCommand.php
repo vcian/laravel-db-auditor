@@ -70,12 +70,10 @@ class DBConstraintCommand extends Command
                             $continue = Constant::STATUS_FALSE;
                         }
                     }
-
                 } while ($continue === Constant::STATUS_TRUE);
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
-            return $exception->getMessage();
         }
 
         return self::SUCCESS;
@@ -155,7 +153,6 @@ class DBConstraintCommand extends Command
                         $foreignContinue = Constant::STATUS_TRUE;
                     }
                 } while ($foreignContinue === Constant::STATUS_FALSE);
-
             } else {
                 $this->errorMessage(__('Lang::messages.constraint.error_message.table_not_found'));
             }
@@ -168,22 +165,24 @@ class DBConstraintCommand extends Command
             $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_selected_table_match', ['foreign' => $referenceTable, 'selected' => $tableName]));
         }
 
-        if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) {
+        if (!$this->skip) {
+            if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) {
 
-            render('
-            <div class="mt-1">
-                <div class="flex space-x-1">
-                    <span class="font-bold text-green">' . $selectedFieldType['data_type'] . '</span>
-                    <i class="text-blue">' . $selectField . '</i>
-                    <span class="flex-1 content-repeat-[.] text-gray"></span>
-                    <i class="text-blue">' . $referenceField . '</i>
-                    <span class="font-bold text-green">' . $referenceFieldType['data_type'] . '</span>
+                render('
+                <div class="mt-1">
+                    <div class="flex space-x-1">
+                        <span class="font-bold text-green">' . $selectedFieldType['data_type'] . '</span>
+                        <i class="text-blue">' . $selectField . '</i>
+                        <span class="flex-1 content-repeat-[.] text-gray"></span>
+                        <i class="text-blue">' . $referenceField . '</i>
+                        <span class="font-bold text-green">' . $referenceFieldType['data_type'] . '</span>
+                    </div>
                 </div>
-            </div>
-            ');
-            $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_not_apply'));
-        } else {
-            $auditService->addConstraint($tableName, $selectField, Constant::CONSTRAINT_FOREIGN_KEY, $referenceTable, $referenceField);
+                ');
+                $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_not_apply'));
+            } else {
+                $auditService->addConstraint($tableName, $selectField, Constant::CONSTRAINT_FOREIGN_KEY, $referenceTable, $referenceField);
+            }
         }
     }
 
@@ -241,6 +240,5 @@ class DBConstraintCommand extends Command
 
             $this->displayTable($tableName);
         }
-
     }
 }

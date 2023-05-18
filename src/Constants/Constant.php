@@ -66,4 +66,14 @@ class Constant
         'double',
     ];
 
+    public const NUMERIC_DATATYPE = [
+        'int',
+        'bigint',
+        'tinyint',
+        'smallint',
+        'mediumint',
+        'decimal'
+    ];
+
+    public const DATATYPE_DECIMAL = 'decimal';
 }

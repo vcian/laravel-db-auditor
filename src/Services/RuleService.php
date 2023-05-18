@@ -19,8 +19,8 @@ class RuleService
      */
     public function __construct(
         protected DBConnectionService $dBConnectionService,
-        protected NamingRuleService   $namingRuleService)
-    {
+        protected NamingRuleService   $namingRuleService
+    ) {
     }
 
     /**
@@ -66,6 +66,8 @@ class RuleService
         } else {
             $filedDetails = $this->fieldRules($tableName);
             foreach ($filedDetails as $field) {
+                unset($field['suggestion']);
+                unset($field['datatype']);
                 if (!empty($field)) {
                     $status = Constant::STATUS_FALSE;
                 }
@@ -112,7 +114,6 @@ class RuleService
             if ($checkLowerCase !== Constant::STATUS_TRUE) {
                 $messages[] = __('Lang::messages.standard.error_message.lowercase') . "($checkLowerCase)";
             }
-
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
@@ -134,9 +135,9 @@ class RuleService
             foreach ($fields as $field) {
                 $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
                 $dataTypeDetails = $this->dBConnectionService->getFieldDataType($tableName, $field);
-
+                $checkFields[$field]['datatype'] = $dataTypeDetails;
                 if ($dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR && $dataTypeDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
-                    $checkFields[$field][] = __('Lang::messages.standard.error_message.datatype_change');
+                    $checkFields[$field]['suggestion'] = __('Lang::messages.standard.error_message.datatype_change');
                 }
             }
         } catch (Exception $exception) {
