@@ -91,17 +91,19 @@ class AuditService
         $fields = Constant::ARRAY_DECLARATION;
         try {
             $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_KEY` = '' ");
+            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND ( `COLUMN_KEY` = '' OR `COLUMN_KEY` = 'UNI' ) ");
 
             foreach ($fieldList as $field) {
                 if (!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
-                    if (str_contains($field->DATA_TYPE, "int")) {
-                        $fields['integer'][] = $field->COLUMN_NAME;
-                    }
-                    $fieldDetails = $this->getFieldDataType($tableName, $field->COLUMN_NAME);
+                    if (!$this->dBConnectionService->checkFieldHasIndex($tableName, $field->COLUMN_NAME)) {
+                        if (str_contains($field->DATA_TYPE, "int")) {
+                            $fields['integer'][] = $field->COLUMN_NAME;
+                        }
+                        $fieldDetails = $this->getFieldDataType($tableName, $field->COLUMN_NAME);
 
-                    if ($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
-                        $fields['mix'][] = $field->COLUMN_NAME;
+                        if ($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
+                            $fields['mix'][] = $field->COLUMN_NAME;
+                        }
                     }
                 }
             }
@@ -125,17 +127,17 @@ class AuditService
 
             if (!$this->tableHasValue($tableName)) {
                 $constrainList[] = Constant::CONSTRAINT_FOREIGN_KEY;
-            }
 
-            if (empty($this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY))) {
-                $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
+                if (empty($this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY))) {
+                    $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
+                }
             }
         }
 
         if (!empty($fields['mix'])) {
             $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
 
-            if (!empty($this->getUniqueFields($tableName, $fields['mix']))) {
+            if (empty($this->getUniqueFields($tableName, $fields['mix']))) {
                 $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
             }
         }
@@ -230,10 +232,12 @@ class AuditService
      * @return bool
      */
     public function addConstraint(
-        string $table, string $field,
-        string $constraint, string $referenceTableName = null,
-        string $referenceField = null): bool
-    {
+        string $table,
+        string $field,
+        string $constraint,
+        string $referenceTableName = null,
+        string $referenceField = null
+    ): bool {
         try {
             switch ($constraint) {
                 case Constant::CONSTRAINT_PRIMARY_KEY:
@@ -268,10 +272,13 @@ class AuditService
      * @return bool
      */
     public function migrateConstrain(
-        string $fileName, string $constrainName,
-        string $tableName, string $fieldName,
-        string $referenceField = null, string $referenceTableName = null): bool
-    {
+        string $fileName,
+        string $constrainName,
+        string $tableName,
+        string $fieldName,
+        string $referenceField = null,
+        string $referenceTableName = null
+    ): bool {
         try {
             $fieldDetails = $this->getFieldDataType($tableName, $fieldName);
             $fieldDataType = Constant::NULL;
@@ -285,8 +292,7 @@ class AuditService
                 "fieldName" => $fieldName,
                 "referenceField" => $referenceField,
                 "referenceTable" => $referenceTableName,
-                "dataType" => $fieldDataType,
-                'length' => $fieldDetails['size'],
+                "dataType" => $fieldDataType
             ];
 
             $contents = file_get_contents(__DIR__ . "/../Database/migrations/" . $fileName);
@@ -330,7 +336,6 @@ class AuditService
                     $uniqueField[] = $field;
                 }
             }
-
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }

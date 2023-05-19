@@ -122,11 +122,47 @@ class DBConnectionService
     public function getFieldDataType(string $tableName, string $fieldName): array|bool
     {
         try {
-            $dataType = DB::select("SELECT `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`  FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ")[0];
+            $query = "SELECT `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`, `NUMERIC_PRECISION`, `NUMERIC_SCALE`  FROM `INFORMATION_SCHEMA`.`COLUMNS`
+            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ";	
+
+            $dataType = DB::select($query)[0];
+            
+            if(in_array($dataType->DATA_TYPE, Constant::NUMERIC_DATATYPE)) {
+                
+                if($dataType->DATA_TYPE === Constant::DATATYPE_DECIMAL) {
+                    $size = "(". $dataType->NUMERIC_PRECISION .",". $dataType->NUMERIC_SCALE .")";
+                } else {
+                    $size = $dataType->NUMERIC_PRECISION;
+                }
+            } else {
+                $size = $dataType->CHARACTER_MAXIMUM_LENGTH;
+            }
 
             if (isset($dataType->DATA_TYPE) && $dataType !== null) {
-                return ['data_type' => $dataType->DATA_TYPE, 'size' => $dataType->CHARACTER_MAXIMUM_LENGTH];
+                return ['data_type' => $dataType->DATA_TYPE, 'size' => $size];
+            }
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return Constant::STATUS_FALSE;
+    }
+
+    /**
+     * Check Field Has Index Constraint
+     * @param string $tableName
+     * @param string $fieldName
+     * @return bool
+     */
+    public function checkFieldHasIndex(string $tableName, string $fieldName): bool
+    {
+        try {
+            $query = "SHOW INDEX FROM ".env('DB_DATABASE').".".$tableName."";
+            $fieldConstraints = DB::select($query);
+
+            foreach($fieldConstraints as $fieldConstraint) {
+                if($fieldConstraint->Column_name === $fieldName && str_contains($fieldConstraint->Key_name, 'index')) {
+                    return Constant::STATUS_TRUE;
+                }
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());

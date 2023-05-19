@@ -14,9 +14,9 @@ class NamingRuleService
      */
     public function nameOnlyLowerCase(string $name): string|bool
     {
-        $name = $this->removeSpecialCharacter($name);
-        if (strtolower($name) !== $name) {
-            return $this->addSpecialCharacter(strtolower($name));
+        $inputName = $this->removeSpecialCharacter($name);
+        if (strtolower($inputName) !== $inputName) {
+            return strtolower($this->addSpecialCharacter($name));
         }
         return Constant::STATUS_TRUE;
     }
@@ -63,7 +63,8 @@ class NamingRuleService
     {
         $title = str_replace(' ', '', $this->removeSpecialCharacter($name));
         if (!ctype_alpha($title)) {
-            return strtolower($this->addSpecialCharacter(preg_replace(Constant::NUMERIC_PATTERN, '', $name)));
+            $result = $this->addSpecialCharacter(preg_replace(Constant::NUMERIC_PATTERN, '', $name));
+            return strtolower((strpos($result, "_") === strlen($result)-1 )? substr_replace($result ,"", -1) : $result);
         }
         return Constant::STATUS_TRUE;
     }
