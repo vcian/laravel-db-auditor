@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table($tableName, function (Blueprint $table) {
-            $table->$dataType($fieldName, $length)->change()->index();
+            $table->$dataType($fieldName)->change()->index();
         });
     }
 
