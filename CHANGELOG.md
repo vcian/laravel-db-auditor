@@ -2,6 +2,17 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v1.5.2 [19th May 2023]
+- UI/UX improvement of db:standard CLU UI.
+- Resolved foreign key constraint issue.
+
+## v1.5.1 [5th May 2023]
+- Bug fixing and Add new Constraint.
+- Change in rules services for suggestion messages.
+- Add condition for empty constraint.
+- Add examples in the readme file.
+
+
 ## v1.5.0 [29th April 2023]
 - Resolved naming validation rules and datatype issue.
 
