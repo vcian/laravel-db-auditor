@@ -48,9 +48,9 @@
                         <td></td>
                         <td></td>
                         @if ($key === 'suggestion')
-                            <td class="text-green flex">{{ $fieldComment }} </td>
+                            <td class="text-yellow flex">{{ $fieldComment }} </td>
                         @else
-                            <td class="text-red flex">👉 {{ $fieldComment }} </td>
+                            <td class="text-red flex">{{ $fieldComment }} </td>
                         @endif
                     </tr>
                 @endforeach
