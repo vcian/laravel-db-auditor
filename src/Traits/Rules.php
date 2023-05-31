@@ -1,36 +1,21 @@
 <?php
 
-namespace Vcian\LaravelDBAuditor\Services;
+namespace Vcian\LaravelDBAuditor\Traits;
 
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Traits\DBConnection;
+use Vcian\LaravelDBAuditor\Traits\NamingRules;
 
-class RuleService
+trait Rules
 {
+    use NamingRules, DBConnection;
+
     /**
      * @var array
      */
     protected array $result;
-
-    /**
-     * @param DBConnectionService $dBConnectionService
-     * @param NamingRuleService $namingRuleService
-     */
-    public function __construct(
-        protected DBConnectionService $dBConnectionService,
-        protected NamingRuleService   $namingRuleService
-    ) {
-    }
-
-    /**
-     * Get Table List
-     * @return array
-     */
-    public function getTableList(): array
-    {
-        return $this->dBConnectionService->getTableList();
-    }
 
     /**
      * Check table name rules
@@ -40,7 +25,7 @@ class RuleService
     {
         $checkTableStandard = Constant::ARRAY_DECLARATION;
         try {
-            $tableList = $this->dBConnectionService->getTableList();
+            $tableList = $this->getTableList();
             foreach ($tableList as $tableName) {
                 $status = $this->checkStatus($tableName);
                 $size = $this->getTableSize($tableName);
@@ -86,13 +71,13 @@ class RuleService
     {
         $messages = Constant::ARRAY_DECLARATION;
         try {
-            $checkLowerCase = $this->namingRuleService->nameOnlyLowerCase($name);
-            $checkSpace = $this->namingRuleService->nameHasNoSpace($name);
-            $checkAlphabets = $this->namingRuleService->nameHasOnlyAlphabets($name);
+            $checkLowerCase = $this->nameOnlyLowerCase($name);
+            $checkSpace = $this->nameHasNoSpace($name);
+            $checkAlphabets = $this->nameHasOnlyAlphabets($name);
 
             if ($type === Constant::TABLE_RULES) {
-                $checkLength = $this->namingRuleService->nameHasFixLength($name);
-                $checkNamePlural = $this->namingRuleService->nameAlwaysPlural($name);
+                $checkLength = $this->nameHasFixLength($name);
+                $checkNamePlural = $this->nameAlwaysPlural($name);
 
                 if (!$checkLength) {
                     $messages[] = __('Lang::messages.standard.error_message.length');
@@ -130,11 +115,11 @@ class RuleService
     {
         $checkFields = Constant::ARRAY_DECLARATION;
         try {
-            $fields = $this->dBConnectionService->getFields($tableName);
+            $fields = $this->getFields($tableName);
 
             foreach ($fields as $field) {
                 $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
-                $dataTypeDetails = $this->dBConnectionService->getFieldDataType($tableName, $field);
+                $dataTypeDetails = $this->getFieldDataType($tableName, $field);
                 $checkFields[$field]['datatype'] = $dataTypeDetails;
                 if ($dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR && $dataTypeDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
                     $checkFields[$field]['suggestion'] = __('Lang::messages.standard.error_message.datatype_change');
@@ -147,16 +132,6 @@ class RuleService
     }
 
     /**
-     * Get Table Size
-     * @param string $tableName
-     * @return string
-     */
-    public function getTableSize(string $tableName): string
-    {
-        return $this->dBConnectionService->getTableSize($tableName);
-    }
-
-    /**
      * Check rules for single table and check table exist or not
      * @param string $tableName
      * @return array|bool
@@ -166,7 +141,7 @@ class RuleService
         $checkTableStatus = Constant::ARRAY_DECLARATION;
         try {
             if ($tableName) {
-                $tableExist = $this->dBConnectionService->checkTableExist($tableName);
+                $tableExist = $this->checkTableExist($tableName);
 
                 if (!$tableExist) {
                     return Constant::STATUS_FALSE;

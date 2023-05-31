@@ -1,13 +1,13 @@
 <?php
 
-namespace Vcian\LaravelDBAuditor\Services;
+namespace Vcian\LaravelDBAuditor\Traits;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 
-class DBConnectionService
+trait DBConnection
 {
 
     /**
@@ -81,7 +81,7 @@ class DBConnectionService
         $fieldWithType = Constant::ARRAY_DECLARATION;
         try {
             $fieldWithType = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
-                            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' ");
+                            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' ");
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
@@ -99,7 +99,7 @@ class DBConnectionService
             $query = 'SELECT
                     ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024),2) AS `size` FROM information_schema.TABLES
                     WHERE
-                        TABLE_SCHEMA = "' . env('DB_DATABASE') . '" AND TABLE_NAME = "' . $tableName . '"
+                        TABLE_SCHEMA = "' . $this->getDatabaseName() . '" AND TABLE_NAME = "' . $tableName . '"
                     ORDER BY
                         (DATA_LENGTH + INDEX_LENGTH) DESC';
             $result = DB::select($query);
@@ -110,7 +110,7 @@ class DBConnectionService
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        return Constant::STATUS_FALSE;
+        return Constant::NULL;
     }
 
     /**
@@ -123,7 +123,7 @@ class DBConnectionService
     {
         try {
             $query = "SELECT `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`, `NUMERIC_PRECISION`, `NUMERIC_SCALE`  FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ";	
+            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ";	
 
             $dataType = DB::select($query)[0];
             
@@ -156,7 +156,7 @@ class DBConnectionService
     public function checkFieldHasIndex(string $tableName, string $fieldName): bool
     {
         try {
-            $query = "SHOW INDEX FROM ".env('DB_DATABASE').".".$tableName."";
+            $query = "SHOW INDEX FROM ".$this->getDatabaseName().".".$tableName."";
             $fieldConstraints = DB::select($query);
 
             foreach($fieldConstraints as $fieldConstraint) {
@@ -168,5 +168,79 @@ class DBConnectionService
             Log::error($exception->getMessage());
         }
         return Constant::STATUS_FALSE;
+    }
+
+    public function getDatabaseName()
+    {
+        return DB::connection()->getDatabaseName();
+    }
+
+    public function getDatabaseSize()
+    {
+        try {
+            $query = 'SELECT table_schema as db_name, ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size" 
+                FROM information_schema.tables
+                where table_schema = "'. $this->getDatabaseName() .'" GROUP BY table_schema'; 
+            
+            $result = DB::select($query);
+
+            if ($result) {
+                return $result[0]->size;
+            }
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return Constant::NULL;
+
+    }
+
+    public function getDatabaseEngin()
+    {
+        try {
+            $query = 'SELECT engine FROM information_schema.Tables where TABLE_SCHEMA = "'. $this->getDatabaseName() .'" Limit 1';
+
+            $result = DB::select($query);
+            
+            if ($result) {
+                return $result[0]->ENGINE;
+            }
+
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return Constant::NULL;
+    }
+
+    public function getCharacterSetName()
+    {
+        try {
+            $query = 'SELECT DEFAULT_CHARACTER_SET_NAME
+                    FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = "'. $this->getDatabaseName() .'"';
+            
+            $result = DB::select($query);
+
+            if ($result) {
+                return $result[0]->DEFAULT_CHARACTER_SET_NAME;
+            }
+
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return Constant::NULL;
+    }
+
+    public function getConfig()
+    {
+        $query = "SHOW VARIABLES";
+        $result = DB::select($query);
+        // innodb_buffer_pool_size
+        // innodb_log_file_size
+        // innodb_log_buffer_size
+        // innodb_flush_log_at_trx_commit
+        // max_connections
+        // innodb_io_capacity
+        // innodb_flush_method
+        // innodb_thread_concurrency
+        dd($result);
     }
 }
