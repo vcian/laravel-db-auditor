@@ -228,19 +228,4 @@ trait DBConnection
         }
         return Constant::NULL;
     }
-
-    public function getConfig()
-    {
-        $query = "SHOW VARIABLES";
-        $result = DB::select($query);
-        // innodb_buffer_pool_size
-        // innodb_log_file_size
-        // innodb_log_buffer_size
-        // innodb_flush_log_at_trx_commit
-        // max_connections
-        // innodb_io_capacity
-        // innodb_flush_method
-        // innodb_thread_concurrency
-        dd($result);
-    }
 }

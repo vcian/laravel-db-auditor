@@ -28,19 +28,18 @@ class DBSummaryCommand extends Command
      * Execute the console command.
      */
     public function handle()
-    {
-        $this->getConfig();
-        // $this->table(
-        //     ['Database Name', 'Size', 'Table Count', 'Engin', 'Character Set'], 
-        //     [[
-        //         $this->getDatabaseName(),
-        //         $this->getDatabaseSize(),
-        //         count($this->getTableList()),
-        //         $this->getDatabaseEngin(),
-        //         $this->getCharacterSetName()
-        //     ]]
-        // );
+    {        
+        $this->table(
+            ['Database Name', 'Size', 'Table Count', 'Engin', 'Character Set'], 
+            [[
+                $this->getDatabaseName(),
+                $this->getDatabaseSize(),
+                count($this->getTableList()),
+                $this->getDatabaseEngin(),
+                $this->getCharacterSetName()
+            ]]
+        );
 
-        // return self::SUCCESS;
+        return self::SUCCESS;
     }
 }
