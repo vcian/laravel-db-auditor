@@ -38,6 +38,8 @@ class Constant
 
     public const STANDARD_COMMAND = 'STANDARD';
     public const CONSTRAINT_COMMAND = 'CONSTRAINT';
+    public const SUMMARY_COMMAND = 'SUMMARY';
+
     public const NULL = null;
     public const NUMERIC_PATTERN = '/[0-9]+/';
 

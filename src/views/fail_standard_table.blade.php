@@ -36,10 +36,12 @@
                                 <td class="text-red">✗</td>
                             @endif
 
-                            <td> {{ $field['datatype']['data_type'] }} </td>
-                            <td> {{ $field['datatype']['size'] }} </td>
+                            <td> {{ $field['datatype']['data_type'] ?? "-" }} </td>
+                            <td> {{ $field['datatype']['size'] ?? "-" }} </td>
                             @php
-                                unset($field['datatype']);
+                                if(isset($field['datatype'])) {
+                                    unset($field['datatype']);
+                                }
                             @endphp
                             @foreach ($field as $key => $fieldComment)
                     <tr>
@@ -57,8 +59,8 @@
             @else
                 <td>{{ $key }}</td>
                 <td class="text-green">✓</td>
-                <td> {{ $field['datatype'] }} </td>
-                <td> {{ $field['datatype']['size'] }} </td>
+                <td> {{ $field['datatype']['data_type'] ?? "-" }} </td>
+                <td> {{ $field['datatype']['size'] ?? "-" }} </td>
                 <td> - </td>
                 @endif
                 </tr>

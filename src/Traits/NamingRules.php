@@ -1,11 +1,11 @@
 <?php
 
-namespace Vcian\LaravelDBAuditor\Services;
+namespace Vcian\LaravelDBAuditor\Traits;
 
 use Illuminate\Support\Str;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 
-class NamingRuleService
+trait NamingRules
 {
     /**
      * Check name only in lowercase.

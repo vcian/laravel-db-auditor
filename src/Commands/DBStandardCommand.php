@@ -4,11 +4,12 @@ namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
 use Vcian\LaravelDBAuditor\Constants\Constant;
-use Vcian\LaravelDBAuditor\Services\RuleService;
+use Vcian\LaravelDBAuditor\Traits\Rules;
 use function Termwind\{render};
 
 class DBStandardCommand extends Command
 {
+    use Rules;
     /**
      * The name and signature of the console command.
      *
@@ -28,8 +29,7 @@ class DBStandardCommand extends Command
      */
     public function handle(): ?int
     {
-        $ruleService = app(RuleService::class);
-        $tableStatus = $ruleService->tablesRule();
+        $tableStatus = $this->tablesRule();
 
         if (!$tableStatus) {
             render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
@@ -40,13 +40,13 @@ class DBStandardCommand extends Command
         $continue = Constant::STATUS_TRUE;
 
         do {
-            $tableName = $this->anticipate('Please enter table name if you want to see the table report', $ruleService->getTableList());
+            $tableName = $this->anticipate('Please enter table name if you want to see the table report', $this->getTableList());
 
             if (empty($tableName)) {
                 return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
             }
 
-            $tableStatus = $ruleService->tableRules($tableName);
+            $tableStatus = $this->tableRules($tableName);
 
             if (!$tableStatus) {
                 return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
