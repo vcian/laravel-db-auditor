@@ -9,7 +9,8 @@ class DBAuditorServiceProvider extends ServiceProvider
     protected array $commands = [
         'Vcian\LaravelDBAuditor\Commands\DBAuditCommand',
         'Vcian\LaravelDBAuditor\Commands\DBStandardCommand',
-        'Vcian\LaravelDBAuditor\Commands\DBConstraintCommand'
+        'Vcian\LaravelDBAuditor\Commands\DBConstraintCommand',
+        'Vcian\LaravelDBAuditor\Commands\DBSummaryCommand'
     ];
 
     /**

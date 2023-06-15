@@ -1,6 +1,6 @@
 <?php
 
-namespace Vcian\LaravelDBAuditor\Services;
+namespace Vcian\LaravelDBAuditor\Traits;
 
 use Exception;
 use Illuminate\Support\Facades\Artisan;
@@ -8,63 +8,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Traits\DBConnection;
 
-class AuditService
+trait Audit
 {
-    public function __construct(protected DBConnectionService $dBConnectionService)
-    {
-        //
-    }
-
-    /**
-     * Get All Table List
-     * @return array
-     */
-    public function getTablesList(): array
-    {
-        return $this->dBConnectionService->getTableList();
-    }
-
-    /**
-     * Get Table Fields
-     * @param string $tableName
-     * @return array
-     */
-    public function getTableFields(string $tableName): array
-    {
-        return $this->dBConnectionService->getFieldsDetails($tableName);
-    }
-
-    /**
-     * Get Table Size
-     * @param string $tableName
-     * @return string $size
-     * @return string
-     */
-    public function getTableSize(string $tableName): string
-    {
-        return $this->dBConnectionService->getTableSize($tableName);
-    }
-
-    /**
-     * Check table exist or not
-     * @param string $tableName
-     * @return bool
-     */
-    public function checkTableExistOrNot(string $tableName): bool
-    {
-        return $this->dBConnectionService->checkTableExist($tableName);
-    }
-
-    /**
-     * @param string $tableName
-     * @param string $field
-     * @return array
-     */
-    public function getFieldDataType(string $tableName, string $field): array
-    {
-        return $this->dBConnectionService->getFieldDataType($tableName, $field);
-    }
+    use DBConnection;
 
     /**
      * Check field exist or not
@@ -74,7 +22,7 @@ class AuditService
      */
     public function checkFieldExistOrNot(string $tableName, string $field): bool
     {
-        $fields = $this->dBConnectionService->getFields($tableName);
+        $fields = $this->getFields($tableName);
         if (in_array($field, $fields)) {
             return Constant::STATUS_TRUE;
         }
@@ -95,7 +43,7 @@ class AuditService
 
             foreach ($fieldList as $field) {
                 if (!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
-                    if (!$this->dBConnectionService->checkFieldHasIndex($tableName, $field->COLUMN_NAME)) {
+                    if (!$this->checkFieldHasIndex($tableName, $field->COLUMN_NAME)) {
                         if (str_contains($field->DATA_TYPE, "int")) {
                             $fields['integer'][] = $field->COLUMN_NAME;
                         }
@@ -155,7 +103,7 @@ class AuditService
         try {
             $constraintFields = Constant::ARRAY_DECLARATION;
 
-            if (!$this->dBConnectionService->checkTableExist($tableName)) {
+            if (!$this->checkTableExist($tableName)) {
                 return [];
             }
 
