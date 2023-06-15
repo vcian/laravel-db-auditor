@@ -2,6 +2,9 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v1.6.0 [15th June 2023]
+- Folder structure change - Services replaced with Traits.
+
 ## v1.5.2 [19th May 2023]
 - UI/UX improvement of db:standard CLI UI.
 - Resolved foreign key constraint issue.
