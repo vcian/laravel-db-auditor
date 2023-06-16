@@ -19,6 +19,7 @@ class DBAuditorServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->commands($this->commands);
+        
     }
 
     /**
@@ -26,7 +27,17 @@ class DBAuditorServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->publishes([
+            __DIR__.'/../resource/images' => public_path('auditor/icon'),
+        ], 'public');
+
+
+        $this->publishes([
+            __DIR__.'/../resource/js' => public_path('auditor/js'),
+        ], 'public');
+
         $this->loadViewsFrom(__DIR__ . '/../views', 'DBAuditor');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
         $this->loadTranslationsFrom(__DIR__ . '/../Lang/', 'Lang');
     }
 }

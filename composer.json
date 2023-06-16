@@ -20,7 +20,8 @@
     ],
     "require": {
         "php": "^8.0",
-        "doctrine/dbal": "^3.6"
+        "doctrine/dbal": "^3.6",
+        "yajra/laravel-datatables-oracle": "^10.4"
     },
     "require-dev": {
         "laravel/pint": "^1.0",
