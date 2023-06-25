@@ -39,7 +39,7 @@ trait Audit
         $fields = Constant::ARRAY_DECLARATION;
         try {
             $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND ( `COLUMN_KEY` = '' OR `COLUMN_KEY` = 'UNI' ) ");
+            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' AND ( `COLUMN_KEY` = '' OR `COLUMN_KEY` = 'UNI' ) ");
 
             foreach ($fieldList as $field) {
                 if (!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
@@ -107,12 +107,17 @@ trait Audit
                 return [];
             }
 
-            $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
+            if($input === Constant::CONSTRAINT_INDEX_KEY) {
+                $result = DB::select("SHOW INDEX FROM {$tableName}");
+            } else {
+                $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
+            }
 
+            
             if ($input === Constant::CONSTRAINT_FOREIGN_KEY) {
                 return $this->getForeignKeyDetails($tableName);
             }
-
+            
             if ($result) {
                 foreach ($result as $value) {
                     $constraintFields[] = $value->Column_name;
@@ -136,8 +141,8 @@ trait Audit
             $resultForeignKey = DB::select("SELECT i.TABLE_SCHEMA, i.TABLE_NAME, i.CONSTRAINT_TYPE,k.COLUMN_NAME, i.CONSTRAINT_NAME,
             k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i
             LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME
-            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . env('DB_DATABASE') . "' AND i.TABLE_NAME = '" . $tableName . "'");
-
+            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . $this->getDatabaseName() . "' AND i.TABLE_NAME = '" . $tableName . "'");
+            
             if ($resultForeignKey) {
                 foreach ($resultForeignKey as $value) {
                     $foreignFieldDetails[] = [
