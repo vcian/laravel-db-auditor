@@ -169,6 +169,7 @@
             background-image: url({{ asset('auditor/icon/bg.png') }});
         }
     </style>
+    @stack('css')
 </head>
 
 <body class="bg-black bg-main bg-[length:100%] text-white font-raleway h-[85vh] mb-10">

@@ -1,6 +1,52 @@
 @extends('DBAuditor::auditor.layouts.default')
 
+@push('css')
+    <style>
+        #myDialog {
+            width: 300px;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+        }
+
+        #myDialog h2 {
+            margin-top: 0;
+        }
+
+        #myDialog button {
+            margin-top: 10px;
+        }
+
+        /* Toast Container */
+        .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        }
+        
+        /* Toast Message */
+        .toast {
+        background-color: #333;
+        color: #fff;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Toast Animation */
+        .toast.show {
+        opacity: 1;
+        }
+    </style>
+@endpush
+
 @section('section')
+<div id="toasts"></div>
     <div class="tabs flex items-center pt-3 mb-3">
         <button data-tab-value="#tab_standard"
             class="active uppercase d-flex items-center me-3 text-[13px] pb-2 relative custom-action">
@@ -93,6 +139,20 @@
             </table>
         </div>
     </div>
+
+    <div class="toast-container">
+        <div class="toast">This is a toast message</div>
+      </div>
+
+<dialog id="myDialog">
+  <h2>Dialog Title</h2>
+  <p>This is the content of the dialog.</p>
+
+  
+
+  <button onclick="closeDialog()">Close</button>
+</dialog>
+
 @endsection
 
 @section('script')
@@ -178,11 +238,13 @@
 
             // Constraint
             $('#tbl-dropdown').on('change', function() {
-
                 changeTable(this.value);
+            });    
 
-            });
-
+            setTimeout(function() {
+                var toast = document.querySelector('.toast');
+                toast.classList.add('show');
+            }, 1000);
         });
 
         function format(d) {
@@ -317,6 +379,39 @@
                 ],
             });
         }
+
+        // function openDialog() {
+        //     var dialog = document.getElementById("myDialog");
+        // dialog.showModal();
+        // }
+
+        // function closeDialog() {
+        //     var dialog = document.getElementById("myDialog");
+        // dialog.close();
+        // }
+
+        function addIndex(columnName) {
+            $.ajax({
+            url: 'api/change-constraint',
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: JSON.stringify({"colum_name" : columnName, "table_name" : $('#tbl-dropdown').val(), "constraint" : 'index'}),
+            success: function(response) {
+                if(response) {
+                    var newElement = $('<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />');
+                    $(".add-constraint-"+response).replaceWith(newElement);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+            });
+   
+        }
+
 
         $(document).on("click", ".custom-action", function() {
             $("#constraints").DataTable().draw();

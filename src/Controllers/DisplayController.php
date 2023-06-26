@@ -3,6 +3,7 @@
 namespace Vcian\LaravelDBAuditor\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Audit;
 use Vcian\LaravelDBAuditor\Traits\Rules;
@@ -67,6 +68,9 @@ class DisplayController
     public function getTableConstraint(string $tableName) : JsonResponse
     {
 
+        $noConstraintFields = $this->getNoConstraintFields($tableName);
+        $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
+
         $data = [
             "fields" => $this->getFieldsDetails($tableName),
             'constrain' => [
@@ -111,11 +115,22 @@ class DisplayController
                 }
             }
 
+            if($primaryKey === "-" && $indexing === "-" && $uniqueKey === "-" && $foreignKey === "-") {
+                $indexing = '<img src=' . asset("auditor/icon/add.png") . ' alt="key" class="m-auto add-constraint-'.$table->COLUMN_NAME.'" style="height:30px" onclick="addIndex(`'.$table->COLUMN_NAME.'`)"/>';
+            }
+
             $response[] = ["column" => $table->COLUMN_NAME, "primaryKey" =>  $primaryKey, "indexing" => $indexing, "uniqueKey" => $uniqueKey, "foreignKey" => $foreignKey];
         }
 
         return response()->json(array(
             "data" => $response
         ));
+    }
+
+    public function changeConstraint(Request $request)
+    {
+        $data = $request->all();
+        $this->addConstraint($data['table_name'], $data['colum_name'], "INDEX");
+        return $data['colum_name'];
     }
 }
