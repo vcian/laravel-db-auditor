@@ -437,12 +437,18 @@
                 }),
                 success: function(response) {
                     if (response) {
-                        var newElement = $('<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />');
+                        var key;
+                        
+                        if(constraint.toLowerCase() === "primary") {
+                            key = $('<img src="auditor/icon/green-key.svg" alt="key" class="m-auto" />');
+                        } else {
+                            key = $('<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />');
+                        }
 
-                        $(".add-constraint-" + response + '-' + constraint).replaceWith(newElement);
+                        $(".add-constraint-" + response + '-' + constraint).replaceWith(key);
                         $(".toast-container").css("display", "block");
-                        $(".toastCustom").replaceWith("<p class='toastCustom'>" + constraint +
-                            " Added Successfully</p>");
+                        $(".toastCustom").replaceWith("<p class='toastCustom'>" + constraint.toLowerCase() +
+                            " key added successfully</p>");
 
                         setTimeout(function() {
                             $(".toast-container").css("display", "none");;

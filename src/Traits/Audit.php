@@ -85,7 +85,7 @@ trait Audit
         if (!empty($fields['mix'])) {
             $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
 
-            if (empty($this->getUniqueFields($tableName, $fields['mix']))) {
+            if (!empty($this->getUniqueFields($tableName, $fields['mix']))) {
                 $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
             }
         }
@@ -108,7 +108,7 @@ trait Audit
             }
 
             if($input === Constant::CONSTRAINT_INDEX_KEY) {
-                $result = DB::select("SHOW INDEX FROM {$tableName}");
+                $result = DB::select("SHOW INDEX FROM {$tableName} where Key_name != 'PRIMARY' and Key_name not like '%unique%'");
             } else {
                 $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
             }
@@ -282,12 +282,19 @@ trait Audit
         $uniqueField = Constant::ARRAY_DECLARATION;
         try {
             foreach ($fields as $field) {
-                $query = "SELECT `" . $field . "`, COUNT(`" . $field . "`) as count FROM " . $tableName . " GROUP BY `" . $field . "` HAVING COUNT(`" . $field . "`) > 1";
-                $result = DB::select($query);
 
-                if (empty($result)) {
-                    $uniqueField[] = $field;
+                $getUniqueQuery = "SELECT * FROM INFORMATION_SCHEMA.STATISTICS
+                          WHERE TABLE_SCHEMA = '". $this->getDatabaseName() ."' AND TABLE_NAME = '".$tableName."' AND COLUMN_NAME = '".$field."' AND NON_UNIQUE = 0";
+                $resultUniqueQuery = DB::select($getUniqueQuery);
+                if(!$resultUniqueQuery) {
+                    $query = "SELECT `" . $field . "`, COUNT(`" . $field . "`) as count FROM " . $tableName . " GROUP BY `" . $field . "` HAVING COUNT(`" . $field . "`) > 1";
+                    $result = DB::select($query);
+    
+                    if (empty($result)) {
+                        $uniqueField[] = $field;
+                    }                    
                 }
+
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
