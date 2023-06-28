@@ -102,7 +102,7 @@ class DisplayController
             }
 
             foreach ($data['constrain']['foreign'] as $foreign) {
-                if ($table->COLUMN_NAME === $foreign['column_name']) {
+                if ($table->COLUMN_NAME === $foreign) {
                     $foreignKeyTooltip = '<div class="inline-flex">
                     <img src=' . asset("auditor/icon/gray-key.svg") . ' alt="key" class="mr-2">
                     <div class="relative flex flex-col items-center group">
@@ -139,6 +139,13 @@ class DisplayController
                             }
                         }
                         break;
+                    case Constant::CONSTRAINT_FOREIGN_KEY:
+                        if(in_array($table->COLUMN_NAME, $noConstraintFields['integer'])) {
+                            if(!$this->tableHasValue($tableName)) {
+                                $foreignKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-'.$table->COLUMN_NAME.'-'.Constant::CONSTRAINT_FOREIGN_KEY.'" style="height:30px;cursor: pointer;" onclick="add(`'.$table->COLUMN_NAME.'`, `'.Constant::CONSTRAINT_FOREIGN_KEY.'`,`'.$tableName.'`)"/>';
+                            }
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -152,10 +159,57 @@ class DisplayController
         ));
     }
 
-    public function changeConstraint(Request $request)
+    /**
+     * Update the field Constraint
+     * @param Request
+     * @return 
+     */
+    public function changeConstraint(Request $request): bool
     {
         $data = $request->all();
         $this->addConstraint($data['table_name'], $data['colum_name'], $data['constraint']);
-        return $data['colum_name'];
+        return Constant::STATUS_TRUE;
+    }
+
+    /**
+     * Get Foreign Key Details
+     * @return array
+     */
+    public function getForeignKeyTableList(): array
+    {
+        return $this->getTableList();
+    }
+
+    /**
+     * Get Foreign Key Field List
+     * @param string
+     * @return array
+     */
+    public function getForeignKeyFieldList(string $tableName): array
+    {
+        return $this->getFieldsDetails($tableName);
+    }
+
+    /**
+     * Add Foreign Key Constraint
+     * @param Request
+     * @return mixed
+     */
+    public function addForeignKeyConstraint(Request $request): mixed
+    {
+        $data= $request->all();
+
+        if($data['reference_table'] === $data['table_name']) {
+            return __('Lang::messages.constraint.error_message.foreign_selected_table_match', ['foreign' => $data['reference_table'], 'selected' => $data['table_name']]);
+        }
+
+        $referenceFieldType = $this->getFieldDataType($data['reference_table'], $data['reference_field']);
+        $selectedFieldType = $this->getFieldDataType($data['table_name'], $data['select_field']);
+        if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) { 
+            return __('Lang::messages.constraint.error_message.foreign_not_apply');
+        }
+
+        $this->addConstraint($data['table_name'], $data['select_field'], Constant::CONSTRAINT_FOREIGN_KEY, $data['reference_table'], $data['reference_field']);
+        return Constant::STATUS_TRUE;
     }
 }
