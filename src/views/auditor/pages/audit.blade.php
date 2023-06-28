@@ -2,51 +2,71 @@
 
 @push('css')
     <style>
-        #myDialog {
-            width: 300px;
+        #confDialog {
             padding: 20px;
-            background-color: #f2f2f2;
+            background-color: black;
             border: 1px solid #ccc;
+            color: white;
+            width: 500px;
         }
 
-        #myDialog h2 {
+        #confDialog h2 {
             margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: cadetblue;
         }
 
-        #myDialog button {
+        #confDialog p {
+            margin-bottom: 10px;
+        }
+
+        #confDialog button {
             margin-top: 10px;
+            color: white;
         }
 
         /* Toast Container */
         .toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            background-color: green;
+            display: none;
         }
-        
+
         /* Toast Message */
-        .toast {
-        background-color: #333;
-        color: #fff;
-        padding: 15px;
-        border-radius: 5px;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        opacity: 0;
-        transition: opacity 0.3s ease-in-out;
+        .toastCustom {
+            background-color: green;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.3s ease-in-out;
+            width: 250px;
+            text-align: center;
         }
-        
+
         /* Toast Animation */
-        .toast.show {
-        opacity: 1;
+        .toastCustom.show {
+            opacity: 1px !important;
+        }
+
+        .colum-value {
+            display: none;
+        }
+
+        .constraint-value {
+            display: none;
         }
     </style>
 @endpush
 
 @section('section')
-<div id="toasts"></div>
+    <div id="toasts"></div>
     <div class="tabs flex items-center pt-3 mb-3">
         <button data-tab-value="#tab_standard"
             class="active uppercase d-flex items-center me-3 text-[13px] pb-2 relative custom-action">
@@ -131,7 +151,7 @@
                     <tr>
                         <th class="text-center uppercase text-sm">Columns</th>
                         <th class="text-center uppercase text-sm">Primary key</th>
-                        <th class="text-center uppercase text-sm">Indexing</th>
+                        <th class="text-center uppercase text-sm">Index Key</th>
                         <th class="text-center uppercase text-sm">Unique key</th>
                         <th class="text-center uppercase text-sm">Foreign key</th>
                     </tr>
@@ -141,18 +161,18 @@
     </div>
 
     <div class="toast-container">
-        <div class="toast">This is a toast message</div>
-      </div>
+        <div class="toastCustom"></div>
+    </div>
 
-<dialog id="myDialog">
-  <h2>Dialog Title</h2>
-  <p>This is the content of the dialog.</p>
+    <dialog id="confDialog">
+        <h2 class="title-dialog"></h2>
+        <p class="description-dialog"></p>
+        <button onclick="confirmDialog()" class="btn btn-success confirm-dialog-btn">Yes</button>
+        <button onclick="closeDialog()" class="btn btn-dangers">Close</button>
+    </dialog>
 
-  
-
-  <button onclick="closeDialog()">Close</button>
-</dialog>
-
+    <p class="colum-value"></p>
+    <p class="constraint-value"></p>
 @endsection
 
 @section('script')
@@ -181,7 +201,6 @@
         });
 
         $(document).ready(function() {
-
             // Standards
             var table = $('#standards').DataTable({
                 scrollX: true,
@@ -239,12 +258,8 @@
             // Constraint
             $('#tbl-dropdown').on('change', function() {
                 changeTable(this.value);
-            });    
+            });
 
-            setTimeout(function() {
-                var toast = document.querySelector('.toast');
-                toast.classList.add('show');
-            }, 1000);
         });
 
         function format(d) {
@@ -380,38 +395,65 @@
             });
         }
 
-        // function openDialog() {
-        //     var dialog = document.getElementById("myDialog");
-        // dialog.showModal();
-        // }
-
-        // function closeDialog() {
-        //     var dialog = document.getElementById("myDialog");
-        // dialog.close();
-        // }
-
-        function addIndex(columnName) {
-            $.ajax({
-            url: 'api/change-constraint',
-            type: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            data: JSON.stringify({"colum_name" : columnName, "table_name" : $('#tbl-dropdown').val(), "constraint" : 'index'}),
-            success: function(response) {
-                if(response) {
-                    var newElement = $('<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />');
-                    $(".add-constraint-"+response).replaceWith(newElement);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error(error);
-            }
-            });
-   
+        function openDialog() {
+            var dialog = document.getElementById("confDialog");
+            dialog.showModal();
         }
 
+        function closeDialog() {
+            var dialog = document.getElementById("confDialog");
+            dialog.close();
+        }
+
+        function confirmDialog() {
+            var dialog = document.getElementById("confDialog");
+            dialog.close();
+            addConstraint();
+        }
+
+        function add(columnName, constraint) {
+            $('#confDialog h2').replaceWith("<h2>ADD " + constraint.toUpperCase() + " KEY</h2>");
+            $('#confDialog p').replaceWith('<p>Do you want to add ' + constraint.toLowerCase() +
+                ' in <span style="color:red;">' + columnName + '</span> field?</p>');
+            $('.colum-value').replaceWith("<p class='colum-value'>" + columnName + "</p>");
+            $('.constraint-value').replaceWith("<p class='constraint-value'>" + constraint + "</p>");
+            openDialog();
+        }
+
+        function addConstraint() {
+            columnName = $('.colum-value').text();
+            constraint = $('.constraint-value').text();
+            $.ajax({
+                url: 'api/change-constraint',
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: JSON.stringify({
+                    "colum_name": columnName,
+                    "table_name": $('#tbl-dropdown').val(),
+                    "constraint": constraint
+                }),
+                success: function(response) {
+                    if (response) {
+                        var newElement = $('<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />');
+
+                        $(".add-constraint-" + response + '-' + constraint).replaceWith(newElement);
+                        $(".toast-container").css("display", "block");
+                        $(".toastCustom").replaceWith("<p class='toastCustom'>" + constraint +
+                            " Added Successfully</p>");
+
+                        setTimeout(function() {
+                            $(".toast-container").css("display", "none");;
+                        }, 1000);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        }
 
         $(document).on("click", ".custom-action", function() {
             $("#constraints").DataTable().draw();

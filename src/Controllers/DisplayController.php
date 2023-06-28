@@ -24,9 +24,9 @@ class DisplayController
 
     /**
      * Get audit table list
-     * @return JsonResponse 
+     * @return JsonResponse
      */
-    public function getAudit() : JsonResponse
+    public function getAudit(): JsonResponse
     {
         $columnName = 'status';
         $noConstraint = '<img src=' . asset("auditor/icon/close.svg") . ' alt="key" class="m-auto" />';
@@ -51,9 +51,9 @@ class DisplayController
     /**
      * Get table data
      * @param string $tableName
-     * @return JsonResponse 
+     * @return JsonResponse
      */
-    public function getTableData(string $tableName) : JsonResponse
+    public function getTableData(string $tableName): JsonResponse
     {
         return response()->json(array(
             "data" => $this->tableRules($tableName)
@@ -63,9 +63,9 @@ class DisplayController
     /**
      * Get Constraint list
      * @param string $tableName
-     * @return JsonResponse 
+     * @return JsonResponse
      */
-    public function getTableConstraint(string $tableName) : JsonResponse
+    public function getTableConstraint(string $tableName): JsonResponse
     {
 
         $noConstraintFields = $this->getNoConstraintFields($tableName);
@@ -80,26 +80,30 @@ class DisplayController
                 'index' => $this->getConstraintField($tableName, Constant::CONSTRAINT_INDEX_KEY)
             ]
         ];
-
         $response = [];
         $greenKey = '<img src=' . asset("auditor/icon/green-key.svg") . ' alt="key" class="m-auto" />';
         $grayKey = '<img src=' . asset("auditor/icon/gray-key.svg") . ' alt="key" class="m-auto" />';
 
         foreach ($data['fields'] as $table) {
 
-            $primaryKey = $indexing = $uniqueKey = $foreignKey = "-";
+            $primaryKey = $indexKey = $uniqueKey = $foreignKey = "-";
+
 
             if (in_array($table->COLUMN_NAME, $data['constrain']['primary'])) {
                 $primaryKey = $greenKey;
-            } else if (in_array($table->COLUMN_NAME, $data['constrain']['unique'])) {
+            }
+
+            if (in_array($table->COLUMN_NAME, $data['constrain']['unique'])) {
                 $uniqueKey = $grayKey;
-            } else if (in_array($table->COLUMN_NAME, $data['constrain']['index'])) {
-                $indexing = $grayKey;
+            }
+
+            if (in_array($table->COLUMN_NAME, $data['constrain']['index'])) {
+                $indexKey = $grayKey;
             }
 
             foreach ($data['constrain']['foreign'] as $foreign) {
                 if ($table->COLUMN_NAME === $foreign['column_name']) {
-                    $foreignKeyToottip = '<div class="inline-flex">
+                    $foreignKeyTooltip = '<div class="inline-flex">
                     <img src=' . asset("auditor/icon/gray-key.svg") . ' alt="key" class="mr-2">
                     <div class="relative flex flex-col items-center group">
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -111,15 +115,36 @@ class DisplayController
                         </div>
                     </div>
                     </div>';
-                    $foreignKey = $foreignKeyToottip;
+                    $foreignKey = $foreignKeyTooltip;
                 }
             }
 
-            if($primaryKey === "-" && $indexing === "-" && $uniqueKey === "-" && $foreignKey === "-") {
-                $indexing = '<img src=' . asset("auditor/icon/add.png") . ' alt="key" class="m-auto add-constraint-'.$table->COLUMN_NAME.'" style="height:30px" onclick="addIndex(`'.$table->COLUMN_NAME.'`)"/>';
+            foreach ($constraintList as $constraint) {
+                switch ($constraint) {
+                    case Constant::CONSTRAINT_PRIMARY_KEY:
+                        if (in_array($table->COLUMN_NAME, $noConstraintFields['integer'])) {
+                            $primaryKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_PRIMARY_KEY . '" style="height:30px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_PRIMARY_KEY . '`)"/>';
+                        }
+                        break;
+                    case Constant::CONSTRAINT_INDEX_KEY:
+                        if (in_array($table->COLUMN_NAME, $noConstraintFields['mix'])) {
+                            $indexKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_INDEX_KEY . '" style="height:30px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_INDEX_KEY . '`)"/>';
+                        }
+                        break;
+                    case Constant::CONSTRAINT_UNIQUE_KEY:
+                        if (in_array($table->COLUMN_NAME, $noConstraintFields['mix'])) {
+                            $fields = $this->getUniqueFields($tableName, $noConstraintFields['mix']);
+                            if (in_array($table->COLUMN_NAME, $fields)) {
+                                $uniqueKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_UNIQUE_KEY . '" style="height:30px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_UNIQUE_KEY . '`)"/>';
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
 
-            $response[] = ["column" => $table->COLUMN_NAME, "primaryKey" =>  $primaryKey, "indexing" => $indexing, "uniqueKey" => $uniqueKey, "foreignKey" => $foreignKey];
+            $response[] = ["column" => $table->COLUMN_NAME, "primaryKey" => $primaryKey, "indexing" => $indexKey, "uniqueKey" => $uniqueKey, "foreignKey" => $foreignKey];
         }
 
         return response()->json(array(
@@ -130,7 +155,7 @@ class DisplayController
     public function changeConstraint(Request $request)
     {
         $data = $request->all();
-        $this->addConstraint($data['table_name'], $data['colum_name'], "INDEX");
+        $this->addConstraint($data['table_name'], $data['colum_name'], $data['constraint']);
         return $data['colum_name'];
     }
 }
