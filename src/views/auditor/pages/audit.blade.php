@@ -62,6 +62,9 @@
         .constraint-value {
             display: none;
         }
+        .table-value{
+            display: none;
+        }
     </style>
 @endpush
 
@@ -133,7 +136,7 @@
         <div class="tabs__tab" id="tab_constraint" data-tab-info>
 
             <div class="dropdown mb-3">
-                <label>Select Table</label>
+                <label style="margin-right:5px">Select Table </label>
                 <select
                     class="btn dropdown-toggle bg-light-black border-0 rounded-2xl text-white w-64 text-start relative text-sm hover:bg-light-black focus:bg-light-black active:bg-light-black mr-1"
                     name="table" id="tbl-dropdown">
@@ -419,12 +422,10 @@
                 $('.constraint-value').replaceWith("<p class='constraint-value'>" + constraint + "</p>");
                 getForeignTables();
             } else {
-                console.log($(".main-dialog")[0]);
                 if ( $(".main-dialog")[0] ) {  
                     $('#confDialog h2').replaceWith("<h2>ADD " + constraint.toUpperCase() + " KEY</h2>");
                     $('.main-dialog').replaceWith('<p>Do you want to add ' + constraint.toLowerCase() +' in <span style="color:red;">' + columnName + '</span> field?</p>');
                     $('.confirm-dialog-btn').replaceWith('<button onclick="confirmDialog()" class="btn btn-success confirm-dialog-btn">Yes</button>');
-        
                 } else {
                     $('#confDialog h2').replaceWith("<h2>ADD " + constraint.toUpperCase() + " KEY</h2>");
                     $('#confDialog p').replaceWith('<p>Do you want to add ' + constraint.toLowerCase() +' in <span style="color:red;">' + columnName + '</span> field?</p>');
@@ -453,12 +454,24 @@
                 success: function(response) {
                     if (response) {
                         var key = "";
+                        var constraints = ['INDEX', 'PRIMARY', 'UNIQUE', 'FOREIGN'];
                         
                         if(constraint.toLowerCase() === "primary") {
                             key = '<img src="auditor/icon/green-key.svg" alt="key" class="m-auto" />';
                         } else {
                             key = '<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />';
                         }
+
+                        constraintList = jQuery.grep(constraints, function(value) {
+                            return value != constraint;
+                        });
+
+                        $.each(constraintList, function(key, value) {
+                            if($(".add-constraint-" + columnName + "-" + value)[0]) {
+                                console.log(value);
+                                $(".add-constraint-" + columnName + "-" + value).replaceWith('-');
+                            }
+                        });
                         
                         $(".add-constraint-" + columnName + "-" + constraint).replaceWith(key);
                         $(".toast-container").css("display", "block");
@@ -466,7 +479,7 @@
 
                         setTimeout(function() {
                             $(".toast-container").css("display", "none");;
-                        }, 1000);
+                        }, 2000);
                     }
                 },
                 error: function(xhr, status, error) {
@@ -486,7 +499,7 @@
                 },
                 success: function(response) {
                     if (response) {
-                        $('#confDialog h2').replaceWith("<h2>Add Foreign Key</h2>");    
+                        $('#confDialog h2').replaceWith("<h2>ADD FOREIGN KEY</h2>");    
                        
                         var html = "<div class='row main-dialog' style='margin-top: 30px;margin-bottom: 20px;'>";
                             
@@ -571,7 +584,7 @@
 
                         setTimeout(function() {
                             $(".toast-container").css("display", "none");;
-                        }, 1000);
+                        }, 2000);
                     }
                 },
                 error: function(xhr, status, error) {

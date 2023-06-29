@@ -38,6 +38,7 @@ class DisplayController
             } else {
                 $value[$columnName] = $constraint;
             }
+            $value["size"] = $value['size']." MB";
             return $value;
         }, $this->tablesRule());
 
@@ -123,26 +124,26 @@ class DisplayController
                 switch ($constraint) {
                     case Constant::CONSTRAINT_PRIMARY_KEY:
                         if (in_array($table->COLUMN_NAME, $noConstraintFields['integer'])) {
-                            $primaryKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_PRIMARY_KEY . '" style="height:30px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_PRIMARY_KEY . '`)"/>';
+                            $primaryKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_PRIMARY_KEY . '" style="height:20px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_PRIMARY_KEY . '`)"/>';
                         }
                         break;
                     case Constant::CONSTRAINT_INDEX_KEY:
                         if (in_array($table->COLUMN_NAME, $noConstraintFields['mix'])) {
-                            $indexKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_INDEX_KEY . '" style="height:30px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_INDEX_KEY . '`)"/>';
+                            $indexKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_INDEX_KEY . '" style="height:20px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_INDEX_KEY . '`)"/>';
                         }
                         break;
                     case Constant::CONSTRAINT_UNIQUE_KEY:
                         if (in_array($table->COLUMN_NAME, $noConstraintFields['mix'])) {
                             $fields = $this->getUniqueFields($tableName, $noConstraintFields['mix']);
                             if (in_array($table->COLUMN_NAME, $fields)) {
-                                $uniqueKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_UNIQUE_KEY . '" style="height:30px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_UNIQUE_KEY . '`)"/>';
+                                $uniqueKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_UNIQUE_KEY . '" style="height:20px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_UNIQUE_KEY . '`)"/>';
                             }
                         }
                         break;
                     case Constant::CONSTRAINT_FOREIGN_KEY:
                         if(in_array($table->COLUMN_NAME, $noConstraintFields['integer'])) {
                             if(!$this->tableHasValue($tableName)) {
-                                $foreignKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-'.$table->COLUMN_NAME.'-'.Constant::CONSTRAINT_FOREIGN_KEY.'" style="height:30px;cursor: pointer;" onclick="add(`'.$table->COLUMN_NAME.'`, `'.Constant::CONSTRAINT_FOREIGN_KEY.'`,`'.$tableName.'`)"/>';
+                                $foreignKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-'.$table->COLUMN_NAME.'-'.Constant::CONSTRAINT_FOREIGN_KEY.'" style="height:20px;cursor: pointer;" onclick="add(`'.$table->COLUMN_NAME.'`, `'.Constant::CONSTRAINT_FOREIGN_KEY.'`,`'.$tableName.'`)"/>';
                             }
                         }
                         break;
