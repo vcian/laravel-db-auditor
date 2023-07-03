@@ -73,6 +73,24 @@ If you want to check standalone feature then you can execute below artisan comma
 
 You have to set your database name with _DB_DATABASE_ parameter in you laravel .env file to use this feature.
 
+## ACCESS WEB PAGE
+
+You can also access this feature through WEB UI. To access web UI, kindly execute below command.
+
+php artisan vendor:publish --tag=public
+
+select "db-auditor"
+
+Route - To access the web UI  "/laravel-db-auditor"
+
+<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/laravel-db-auditor/db-standard-ui.png" width="100%" alt="Laravel DB Auditor UI"></p>
+
+
+<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/laravel-db-auditor/db-standard-details-ui.png" width="100%" alt="Laravel DB Auditor UI"></p>
+
+<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/laravel-db-auditor/db-constraint-ui.png" width="100%" alt="Laravel DB Auditor UI"></p>
+
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
