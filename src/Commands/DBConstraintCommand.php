@@ -135,11 +135,11 @@ class DBConstraintCommand extends Command
         $fields = Constant::ARRAY_DECLARATION;
 
         do {
-            $referenceTable = $this->anticipate(__('Lang::messages.constraint.question.foreign_table'), $this->getTablesList());
+            $referenceTable = $this->anticipate(__('Lang::messages.constraint.question.foreign_table'), $this->getTableList());
 
-            if ($referenceTable && $this->checkTableExistOrNot($referenceTable)) {
+            if ($referenceTable && $this->checkTableExist($referenceTable)) {
 
-                foreach ($this->getTableFields($referenceTable) as $field) {
+                foreach ($this->getFieldsDetails($referenceTable) as $field) {
                     $fields[] = $field->COLUMN_NAME;
                 }
                 do {

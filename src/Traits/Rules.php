@@ -71,13 +71,13 @@ trait Rules
     {
         $messages = Constant::ARRAY_DECLARATION;
         try {
-            $checkLowerCase = $this->nameOnlyLowerCase($name);
-            $checkSpace = $this->nameHasNoSpace($name);
-            $checkAlphabets = $this->nameHasOnlyAlphabets($name);
-
+            $this->setConvenationName($name);
+            $checkConvention = $this->nameConvention();
+            $checkAlphabets = $this->nameHasAlphabetCharacterSet();
+            
             if ($type === Constant::TABLE_RULES) {
-                $checkLength = $this->nameHasFixLength($name);
-                $checkNamePlural = $this->nameAlwaysPlural($name);
+                $checkLength = $this->nameHasFixLength();
+                $checkNamePlural = $this->nameAlwaysPlural();
 
                 if (!$checkLength) {
                     $messages[] = __('Lang::messages.standard.error_message.length');
@@ -88,16 +88,12 @@ trait Rules
                 }
             }
 
-            if ($checkSpace !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.space') . "($checkSpace)";
-            }
-
             if ($checkAlphabets !== Constant::STATUS_TRUE) {
                 $messages[] = __('Lang::messages.standard.error_message.alphabets') . "($checkAlphabets)";
             }
 
-            if ($checkLowerCase !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.lowercase') . "($checkLowerCase)";
+            if ($checkConvention !== Constant::STATUS_TRUE) {
+                $messages[] = __('Lang::messages.standard.error_message.convention') . "($checkConvention)";
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());

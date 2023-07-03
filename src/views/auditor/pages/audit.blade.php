@@ -1,6 +1,75 @@
 @extends('DBAuditor::auditor.layouts.default')
 
+@push('css')
+    <style>
+        #confDialog {
+            padding: 20px;
+            background-color: black;
+            border: 1px solid #ccc;
+            color: white;
+            width: 500px;
+        }
+
+        #confDialog h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: cadetblue;
+        }
+
+        #confDialog p {
+            margin-bottom: 10px;
+        }
+
+        #confDialog button {
+            margin-top: 10px;
+            color: white;
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            background-color: green;
+            display: none;
+        }
+
+        /* Toast Message */
+        .toastCustom {
+            background-color: green;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.3s ease-in-out;
+            width: 250px;
+            text-align: center;
+        }
+
+        /* Toast Animation */
+        .toastCustom.show {
+            opacity: 1px !important;
+        }
+
+        .colum-value {
+            display: none;
+        }
+
+        .constraint-value {
+            display: none;
+        }
+        .table-value{
+            display: none;
+        }
+    </style>
+@endpush
+
 @section('section')
+    <div id="toasts"></div>
     <div class="tabs flex items-center pt-3 mb-3">
         <button data-tab-value="#tab_standard"
             class="active uppercase d-flex items-center me-3 text-[13px] pb-2 relative custom-action">
@@ -67,7 +136,7 @@
         <div class="tabs__tab" id="tab_constraint" data-tab-info>
 
             <div class="dropdown mb-3">
-                <label>Select Table</label>
+                <label style="margin-right:5px">Select Table </label>
                 <select
                     class="btn dropdown-toggle bg-light-black border-0 rounded-2xl text-white w-64 text-start relative text-sm hover:bg-light-black focus:bg-light-black active:bg-light-black mr-1"
                     name="table" id="tbl-dropdown">
@@ -85,7 +154,7 @@
                     <tr>
                         <th class="text-center uppercase text-sm">Columns</th>
                         <th class="text-center uppercase text-sm">Primary key</th>
-                        <th class="text-center uppercase text-sm">Indexing</th>
+                        <th class="text-center uppercase text-sm">Index Key</th>
                         <th class="text-center uppercase text-sm">Unique key</th>
                         <th class="text-center uppercase text-sm">Foreign key</th>
                     </tr>
@@ -93,6 +162,21 @@
             </table>
         </div>
     </div>
+
+    <div class="toast-container">
+        <div class="toastCustom"></div>
+    </div>
+
+    <dialog id="confDialog">
+        <h2 class="title-dialog"></h2>
+        <p class="description-dialog"></p>
+        <button onclick="confirmDialog()" class="btn btn-success confirm-dialog-btn">Yes</button>
+        <button onclick="closeDialog()" class="btn btn-dangers">Close</button>
+    </dialog>
+
+    <p class="colum-value"></p>
+    <p class="table-value"></p>
+    <p class="constraint-value"></p>
 @endsection
 
 @section('script')
@@ -178,9 +262,7 @@
 
             // Constraint
             $('#tbl-dropdown').on('change', function() {
-
                 changeTable(this.value);
-
             });
 
         });
@@ -210,8 +292,6 @@
                 });
                 tableComment += '</tbody>' + '</table>';
             }
-
-
 
             var table =
                 '<table class="table table-stripped table-bordered display nowrap w-100 border-gray" cellpadding="5" cellspacing="0" border="0">' +
@@ -318,6 +398,201 @@
             });
         }
 
+        function openDialog() {
+            var dialog = document.getElementById("confDialog");
+            dialog.showModal();
+        }
+
+        function closeDialog() {
+            var dialog = document.getElementById("confDialog");
+            dialog.close();
+        }
+
+        function confirmDialog() {
+            var dialog = document.getElementById("confDialog");
+            dialog.close();
+            addConstraint();
+        }
+
+        function add(columnName, constraint, tableName) {
+
+            if(constraint.toLowerCase() === "foreign") {
+                $('.colum-value').replaceWith("<p class='colum-value'>" + columnName + "</p>");
+                $('.table-value').replaceWith("<p class='table-value'>" + tableName + "</p>");
+                $('.constraint-value').replaceWith("<p class='constraint-value'>" + constraint + "</p>");
+                getForeignTables();
+            } else {
+                if ( $(".main-dialog")[0] ) {  
+                    $('#confDialog h2').replaceWith("<h2>ADD " + constraint.toUpperCase() + " KEY</h2>");
+                    $('.main-dialog').replaceWith('<p>Do you want to add ' + constraint.toLowerCase() +' in <span style="color:red;">' + columnName + '</span> field?</p>');
+                    $('.confirm-dialog-btn').replaceWith('<button onclick="confirmDialog()" class="btn btn-success confirm-dialog-btn">Yes</button>');
+                } else {
+                    $('#confDialog h2').replaceWith("<h2>ADD " + constraint.toUpperCase() + " KEY</h2>");
+                    $('#confDialog p').replaceWith('<p>Do you want to add ' + constraint.toLowerCase() +' in <span style="color:red;">' + columnName + '</span> field?</p>');
+                }
+                $('.colum-value').replaceWith("<p class='colum-value'>" + columnName + "</p>");
+                $('.constraint-value').replaceWith("<p class='constraint-value'>" + constraint + "</p>");
+                openDialog();
+            }
+        }
+
+        function addConstraint() {
+            columnName = $('.colum-value').text();
+            constraint = $('.constraint-value').text();
+            $.ajax({
+                url: 'api/change-constraint',
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: JSON.stringify({
+                    "colum_name": columnName,
+                    "table_name": $('#tbl-dropdown').val(),
+                    "constraint": constraint
+                }),
+                success: function(response) {
+                    if (response) {
+                        var key = "";
+                        var constraints = ['INDEX', 'PRIMARY', 'UNIQUE', 'FOREIGN'];
+                        
+                        if(constraint.toLowerCase() === "primary") {
+                            key = '<img src="auditor/icon/green-key.svg" alt="key" class="m-auto" />';
+                        } else {
+                            key = '<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />';
+                        }
+
+                        constraintList = jQuery.grep(constraints, function(value) {
+                            return value != constraint;
+                        });
+
+                        $.each(constraintList, function(key, value) {
+                            if($(".add-constraint-" + columnName + "-" + value)[0]) {
+                                console.log(value);
+                                $(".add-constraint-" + columnName + "-" + value).replaceWith('-');
+                            }
+                        });
+                        
+                        $(".add-constraint-" + columnName + "-" + constraint).replaceWith(key);
+                        $(".toast-container").css("display", "block");
+                        $(".toastCustom").replaceWith("<p class='toastCustom'>" + constraint.toLowerCase() + " key added successfully</p>");
+
+                        setTimeout(function() {
+                            $(".toast-container").css("display", "none");;
+                        }, 2000);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        }
+
+        function getForeignTables()
+        {
+            $.ajax({
+                url: 'api/foreign-key-table',
+                type: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response) {
+                        $('#confDialog h2').replaceWith("<h2>ADD FOREIGN KEY</h2>");    
+                       
+                        var html = "<div class='row main-dialog' style='margin-top: 30px;margin-bottom: 20px;'>";
+                            
+                            // foreign table    
+                            html += "<div class='col-md-6 sub-dialog'><select class='form-control select-foreign-table' id='select-foreign-tbl'>";
+                                html += "<option disabled selected>Select Foreign Table</option>";
+                            $.each(response, function(key, value) {
+                                html += "<option value="+value+">"+value+"</option>";
+                            });
+                            html += "</select></div>";
+
+                            html += "<div class='field-list'></div>"
+
+                        html += "</div>";
+
+                        $('#confDialog p').replaceWith(html);
+                        $('#confDialog .confirm-dialog-btn').replaceWith('<button onclick="addforeignKey()" class="btn btn-success confirm-dialog-btn">Add</button>');
+                        openDialog();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        }
+
+        $(document).on('change','#select-foreign-tbl', function() {
+            
+            $.ajax({
+                url: 'api/foreign-key-field/'+this.value,
+                type: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response) {
+                        // foreign column
+                        var html = "<div class='col-md-6 field-list'><select class='form-control' id='select-foreign-field'>";
+                            html += "<option disabled selected>Select Foreign Column</option>";
+                            $.each(response, function(key, value) {
+                                html += "<option value="+value.COLUMN_NAME+">"+value.COLUMN_NAME+"</option>";
+                            });
+                        html += "</select></div>";
+
+                        $('.field-list').replaceWith(html);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+
+           
+        });
+
+        function addforeignKey() 
+        {
+            var foreignTable = document.getElementById('select-foreign-tbl');
+            var foreignField = document.getElementById('select-foreign-field');
+            var columnName = $('.colum-value').text();
+            var tableName = $('.table-value').text();
+            $.ajax({
+                url: 'api/add-foreign-constraint',
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: JSON.stringify({
+                    "table_name": tableName,
+                    "select_field": columnName,
+                    "reference_table": foreignTable.value,
+                    "reference_field": foreignField.value
+                }),
+                success: function(response) {
+                    if (response) {
+                        $(".add-constraint-" + columnName + '-FOREIGN').replaceWith('<img src="auditor/icon/gray-key.svg" alt="key" class="m-auto" />');
+                        closeDialog();
+                        $(".toast-container").css("display", "block");
+                        $(".toastCustom").replaceWith("<p class='toastCustom'>foreign key added successfully</p>");
+
+                        setTimeout(function() {
+                            $(".toast-container").css("display", "none");;
+                        }, 2000);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        }
+        
         $(document).on("click", ".custom-action", function() {
             $("#constraints").DataTable().draw();
             $("#standards").DataTable().draw();
