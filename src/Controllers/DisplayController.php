@@ -3,6 +3,7 @@
 namespace Vcian\LaravelDBAuditor\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Audit;
 use Vcian\LaravelDBAuditor\Traits\Rules;
@@ -23,9 +24,9 @@ class DisplayController
 
     /**
      * Get audit table list
-     * @return JsonResponse 
+     * @return JsonResponse
      */
-    public function getAudit() : JsonResponse
+    public function getAudit(): JsonResponse
     {
         $columnName = 'status';
         $noConstraint = '<img src=' . asset("auditor/icon/close.svg") . ' alt="key" class="m-auto" />';
@@ -37,6 +38,7 @@ class DisplayController
             } else {
                 $value[$columnName] = $constraint;
             }
+            $value["size"] = $value['size']." MB";
             return $value;
         }, $this->tablesRule());
 
@@ -50,9 +52,9 @@ class DisplayController
     /**
      * Get table data
      * @param string $tableName
-     * @return JsonResponse 
+     * @return JsonResponse
      */
-    public function getTableData(string $tableName) : JsonResponse
+    public function getTableData(string $tableName): JsonResponse
     {
         return response()->json(array(
             "data" => $this->tableRules($tableName)
@@ -62,10 +64,13 @@ class DisplayController
     /**
      * Get Constraint list
      * @param string $tableName
-     * @return JsonResponse 
+     * @return JsonResponse
      */
-    public function getTableConstraint(string $tableName) : JsonResponse
+    public function getTableConstraint(string $tableName): JsonResponse
     {
+
+        $noConstraintFields = $this->getNoConstraintFields($tableName);
+        $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
 
         $data = [
             "fields" => $this->getFieldsDetails($tableName),
@@ -76,26 +81,30 @@ class DisplayController
                 'index' => $this->getConstraintField($tableName, Constant::CONSTRAINT_INDEX_KEY)
             ]
         ];
-
         $response = [];
         $greenKey = '<img src=' . asset("auditor/icon/green-key.svg") . ' alt="key" class="m-auto" />';
         $grayKey = '<img src=' . asset("auditor/icon/gray-key.svg") . ' alt="key" class="m-auto" />';
 
         foreach ($data['fields'] as $table) {
 
-            $primaryKey = $indexing = $uniqueKey = $foreignKey = "-";
+            $primaryKey = $indexKey = $uniqueKey = $foreignKey = "-";
+
 
             if (in_array($table->COLUMN_NAME, $data['constrain']['primary'])) {
                 $primaryKey = $greenKey;
-            } else if (in_array($table->COLUMN_NAME, $data['constrain']['unique'])) {
+            }
+
+            if (in_array($table->COLUMN_NAME, $data['constrain']['unique'])) {
                 $uniqueKey = $grayKey;
-            } else if (in_array($table->COLUMN_NAME, $data['constrain']['index'])) {
-                $indexing = $grayKey;
+            }
+
+            if (in_array($table->COLUMN_NAME, $data['constrain']['index'])) {
+                $indexKey = $grayKey;
             }
 
             foreach ($data['constrain']['foreign'] as $foreign) {
-                if ($table->COLUMN_NAME === $foreign['column_name']) {
-                    $foreignKeyToottip = '<div class="inline-flex">
+                if ($table->COLUMN_NAME === $foreign) {
+                    $foreignKeyTooltip = '<div class="inline-flex">
                     <img src=' . asset("auditor/icon/gray-key.svg") . ' alt="key" class="mr-2">
                     <div class="relative flex flex-col items-center group">
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -107,15 +116,101 @@ class DisplayController
                         </div>
                     </div>
                     </div>';
-                    $foreignKey = $foreignKeyToottip;
+                    $foreignKey = $foreignKeyTooltip;
                 }
             }
 
-            $response[] = ["column" => $table->COLUMN_NAME, "primaryKey" =>  $primaryKey, "indexing" => $indexing, "uniqueKey" => $uniqueKey, "foreignKey" => $foreignKey];
+            foreach ($constraintList as $constraint) {
+                switch ($constraint) {
+                    case Constant::CONSTRAINT_PRIMARY_KEY:
+                        if (in_array($table->COLUMN_NAME, $noConstraintFields['integer'])) {
+                            $primaryKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_PRIMARY_KEY . '" style="height:20px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_PRIMARY_KEY . '`)"/>';
+                        }
+                        break;
+                    case Constant::CONSTRAINT_INDEX_KEY:
+                        if (in_array($table->COLUMN_NAME, $noConstraintFields['mix'])) {
+                            $indexKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_INDEX_KEY . '" style="height:20px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_INDEX_KEY . '`)"/>';
+                        }
+                        break;
+                    case Constant::CONSTRAINT_UNIQUE_KEY:
+                        if (in_array($table->COLUMN_NAME, $noConstraintFields['mix'])) {
+                            $fields = $this->getUniqueFields($tableName, $noConstraintFields['mix']);
+                            if (in_array($table->COLUMN_NAME, $fields)) {
+                                $uniqueKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-' . $table->COLUMN_NAME . '-' . Constant::CONSTRAINT_UNIQUE_KEY . '" style="height:20px;cursor: pointer;" onclick="add(`' . $table->COLUMN_NAME . '`, `' . Constant::CONSTRAINT_UNIQUE_KEY . '`)"/>';
+                            }
+                        }
+                        break;
+                    case Constant::CONSTRAINT_FOREIGN_KEY:
+                        if(in_array($table->COLUMN_NAME, $noConstraintFields['integer'])) {
+                            if(!$this->tableHasValue($tableName)) {
+                                $foreignKey = '<img src=' . asset("auditor/icon/add.svg") . ' alt="key" class="m-auto add-constraint-'.$table->COLUMN_NAME.'-'.Constant::CONSTRAINT_FOREIGN_KEY.'" style="height:20px;cursor: pointer;" onclick="add(`'.$table->COLUMN_NAME.'`, `'.Constant::CONSTRAINT_FOREIGN_KEY.'`,`'.$tableName.'`)"/>';
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            $response[] = ["column" => $table->COLUMN_NAME, "primaryKey" => $primaryKey, "indexing" => $indexKey, "uniqueKey" => $uniqueKey, "foreignKey" => $foreignKey];
         }
 
         return response()->json(array(
             "data" => $response
         ));
+    }
+
+    /**
+     * Update the field Constraint
+     * @param Request
+     * @return 
+     */
+    public function changeConstraint(Request $request): bool
+    {
+        $data = $request->all();
+        $this->addConstraint($data['table_name'], $data['colum_name'], $data['constraint']);
+        return Constant::STATUS_TRUE;
+    }
+
+    /**
+     * Get Foreign Key Details
+     * @return array
+     */
+    public function getForeignKeyTableList(): array
+    {
+        return $this->getTableList();
+    }
+
+    /**
+     * Get Foreign Key Field List
+     * @param string
+     * @return array
+     */
+    public function getForeignKeyFieldList(string $tableName): array
+    {
+        return $this->getFieldsDetails($tableName);
+    }
+
+    /**
+     * Add Foreign Key Constraint
+     * @param Request
+     * @return mixed
+     */
+    public function addForeignKeyConstraint(Request $request): mixed
+    {
+        $data= $request->all();
+
+        if($data['reference_table'] === $data['table_name']) {
+            return __('Lang::messages.constraint.error_message.foreign_selected_table_match', ['foreign' => $data['reference_table'], 'selected' => $data['table_name']]);
+        }
+
+        $referenceFieldType = $this->getFieldDataType($data['reference_table'], $data['reference_field']);
+        $selectedFieldType = $this->getFieldDataType($data['table_name'], $data['select_field']);
+        if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) { 
+            return __('Lang::messages.constraint.error_message.foreign_not_apply');
+        }
+
+        $this->addConstraint($data['table_name'], $data['select_field'], Constant::CONSTRAINT_FOREIGN_KEY, $data['reference_table'], $data['reference_field']);
+        return Constant::STATUS_TRUE;
     }
 }
