@@ -108,9 +108,9 @@ trait Audit
             }
 
             if($input === Constant::CONSTRAINT_INDEX_KEY) {
-                $result = DB::select("SHOW INDEX FROM {$tableName} where Key_name != 'PRIMARY' and Key_name not like '%unique%'");
+                $result = DB::select("SHOW INDEX FROM `{$tableName}` where Key_name != 'PRIMARY' and Key_name not like '%unique%'");
             } else {
-                $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
+                $result = DB::select("SHOW KEYS FROM `{$tableName}` WHERE Key_name LIKE '%" . strtolower($input) . "%'");
             }
 
             
