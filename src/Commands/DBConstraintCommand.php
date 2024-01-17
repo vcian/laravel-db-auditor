@@ -7,8 +7,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Audit;
-use function Termwind\{render};
+
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\select;
 use function Termwind\{renderUsing};
+use function Termwind\{render};
 
 class DBConstraintCommand extends Command
 {
@@ -38,10 +41,11 @@ class DBConstraintCommand extends Command
     public function handle(): int|string
     {
         try {
-            
-            $tableName = $this->components->choice(
-                __('Lang::messages.constraint.question.table_selection'),
-                $this->getTableList()
+
+            $tableName = select(
+                label: __('Lang::messages.constraint.question.table_selection'),
+                options: $this->getTableList(),
+                default: $this->getTableList()[0]
             );
 
             $this->displayTable($tableName);
@@ -56,13 +60,14 @@ class DBConstraintCommand extends Command
                     if (empty($noConstraintFields)) {
                         $continue = Constant::STATUS_FALSE;
                     } else {
-                        if ($this->confirm(__('Lang::messages.constraint.question.continue'))) {
+                        if (confirm(label: __('Lang::messages.constraint.question.continue'))) {
 
                             $this->skip = Constant::STATUS_FALSE;
                             $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
-                            $selectConstrain = $this->choice(
-                                __('Lang::messages.constraint.question.constraint_selection'),
-                                $constraintList
+                            $selectConstrain = select(
+                                label: __('Lang::messages.constraint.question.constraint_selection'),
+                                options: $constraintList,
+                                default: $constraintList[0]
                             );
 
                             $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
@@ -81,23 +86,21 @@ class DBConstraintCommand extends Command
 
     /**
      * Display selected table
-     * @param string $tableName
-     * @return void
      */
     public function displayTable(string $tableName): void
     {
 
         $data = [
-            "table" => $tableName,
-            "size" => $this->getTableSize($tableName),
-            "fields" => $this->getFieldsDetails($tableName),
+            'table' => $tableName,
+            'size' => $this->getTableSize($tableName),
+            'fields' => $this->getFieldsDetails($tableName),
             'field_count' => count($this->getFieldsDetails($tableName)),
             'constrain' => [
                 'primary' => $this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY),
                 'unique' => $this->getConstraintField($tableName, Constant::CONSTRAINT_UNIQUE_KEY),
                 'foreign' => $this->getConstraintField($tableName, Constant::CONSTRAINT_FOREIGN_KEY),
-                'index' => $this->getConstraintField($tableName, Constant::CONSTRAINT_INDEX_KEY)
-            ]
+                'index' => $this->getConstraintField($tableName, Constant::CONSTRAINT_INDEX_KEY),
+            ],
         ];
 
         render(view('DBAuditor::constraint', ['data' => $data]));
@@ -105,7 +108,6 @@ class DBConstraintCommand extends Command
 
     /**
      * Display error messages
-     * @param string $message
      */
     public function errorMessage(string $message): void
     {
@@ -115,7 +117,6 @@ class DBConstraintCommand extends Command
 
     /**
      * Display success messages
-     * @param string $message
      */
     public function successMessage(string $message): void
     {
@@ -124,9 +125,6 @@ class DBConstraintCommand extends Command
 
     /**
      * Get Foreign Key Constrain
-     * @param string $tableName
-     * @param string $selectField
-     * @return void
      */
     public function foreignKeyConstraint(string $tableName, string $selectField): void
     {
@@ -145,7 +143,7 @@ class DBConstraintCommand extends Command
                 do {
                     $referenceField = $this->anticipate(__('Lang::messages.constraint.question.foreign_field'), $fields);
 
-                    if (!$referenceField || !$this->checkFieldExistOrNot($referenceTable, $referenceField)) {
+                    if (! $referenceField || ! $this->checkFieldExistOrNot($referenceTable, $referenceField)) {
                         $this->errorMessage(__('Lang::messages.constraint.error_message.field_not_found'));
                     } else {
                         $foreignContinue = Constant::STATUS_TRUE;
@@ -163,17 +161,17 @@ class DBConstraintCommand extends Command
             $this->errorMessage(__('Lang::messages.constraint.error_message.foreign_selected_table_match', ['foreign' => $referenceTable, 'selected' => $tableName]));
         }
 
-        if (!$this->skip) {
+        if (! $this->skip) {
             if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) {
 
                 render('
                 <div class="mt-1">
                     <div class="flex space-x-1">
-                        <span class="font-bold text-green">' . $selectedFieldType['data_type'] . '</span>
-                        <i class="text-blue">' . $selectField . '</i>
+                        <span class="font-bold text-green">'.$selectedFieldType['data_type'].'</span>
+                        <i class="text-blue">'.$selectField.'</i>
                         <span class="flex-1 content-repeat-[.] text-gray"></span>
-                        <i class="text-blue">' . $referenceField . '</i>
-                        <span class="font-bold text-green">' . $referenceFieldType['data_type'] . '</span>
+                        <i class="text-blue">'.$referenceField.'</i>
+                        <span class="font-bold text-green">'.$referenceFieldType['data_type'].'</span>
                     </div>
                 </div>
                 ');
@@ -184,12 +182,6 @@ class DBConstraintCommand extends Command
         }
     }
 
-    /**
-     * @param string $selectConstrain
-     * @param array $noConstraintFields
-     * @param string $tableName
-     * @return void
-     */
     public function selectedConstraint(string $selectConstrain, array $noConstraintFields, string $tableName): void
     {
 
@@ -201,7 +193,7 @@ class DBConstraintCommand extends Command
             }
         }
 
-        if (!$this->skip) {
+        if (! $this->skip) {
             if ($selectConstrain === Constant::CONSTRAINT_PRIMARY_KEY || $selectConstrain === Constant::CONSTRAINT_FOREIGN_KEY) {
                 $fields = $noConstraintFields['integer'];
             } else {
@@ -215,9 +207,9 @@ class DBConstraintCommand extends Command
                 }
             }
 
-            if (!$this->skip) {
+            if (! $this->skip) {
                 $selectField = $this->choice(
-                    __('Lang::messages.constraint.question.field_selection') . ' ' . strtolower($selectConstrain) . ' key',
+                    __('Lang::messages.constraint.question.field_selection').' '.strtolower($selectConstrain).' key',
                     $fields
                 );
 
@@ -229,7 +221,7 @@ class DBConstraintCommand extends Command
             }
         }
 
-        if (!$this->skip) {
+        if (! $this->skip) {
             renderUsing($this->output);
 
             $this->successMessage(__('Lang::messages.constraint.success_message.constraint_added'));
