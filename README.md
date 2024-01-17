@@ -67,7 +67,14 @@ If you want to check standalone feature then you can execute below artisan comma
 
 <p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/laravel-db-auditor/db-standard-table-report-2.png" width="100%" alt="Logo Laravel DB Auditor"></p>
 
-
+---
+> #### **php artisan db:track**
+> 
+> This command give you the track of the database files. Like when it's created with how many field in which table or whom created. this type of information show in the result.
+> 
+> 
+> You can also filter with --table=, --action=, --status=.
+>
 
 **Note:**
 
