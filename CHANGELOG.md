@@ -2,6 +2,11 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v1.7.0 [3rd July 2023]
+- Integrate Web Page For Standard Check.
+- Integrate Web Page for Constraint Page with Actions - Add primary key, index, foreign and unique keys.
+- Minor bug fixing.
+
 ## v1.6.0 [15th June 2023]
 - Folder structure change - Services replaced with Traits.
 
