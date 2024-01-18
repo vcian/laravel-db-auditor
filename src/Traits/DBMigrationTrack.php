@@ -2,10 +2,79 @@
 
 namespace Vcian\LaravelDBAuditor\Traits;
 
+use Illuminate\Support\Facades\File;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 
 trait DBMigrationTrack
 {
+    /**
+     * Get Database related information from the migration file.
+     * Collect all the details into one place.
+     */
+    public function collectDataFromFile($type = 'command')
+    {
+        $data = [];
+
+        $filesInFolder = File::files(database_path('migrations'));
+
+        foreach ($filesInFolder as $path) {
+            $file = pathinfo($path);
+
+            $fileName = $file['basename'];
+
+            if ($type === 'command') {
+                array_push($data,
+                    [
+                        $this->getMigrationDate($file['filename']),
+                        $this->getMigrationTableName($fileName),
+                        $this->replaceStringWithDots($this->getMigrationFieldName($fileName)),
+                        $this->getMigrationAction($fileName),
+                        $fileName,
+                        $this->getMigrationStatus($file['filename']),
+                        $this->getMigrationCreatedBy($fileName),
+                    ]
+                );
+            } else {
+                array_push($data,
+                    [
+                        'date' => $this->getMigrationDate($file['filename']),
+                        'table' => $this->getMigrationTableName($fileName),
+                        'fields' => $this->getMigrationFieldName($fileName),
+                        'action' => $this->getMigrationAction($fileName),
+                        'file' => $fileName,
+                        'status' => $this->getMigrationStatus($file['filename']),
+                        'createdby' => $this->getMigrationCreatedBy($fileName),
+                    ]
+                );
+            }
+
+        }
+
+        return $data;
+    }
+
+    /**
+     * Filter based on the command argument.
+     */
+    public function filter($filterType, $data, $filter)
+    {
+        $result = array_filter($data, function ($item) use ($filter, $filterType) {
+
+            switch ($filterType) {
+                case 'table':
+                    return $item[1] === $filter;
+                case 'action':
+                    return $item[3] === $filter;
+                case 'status':
+                    return $item[5] === $filter;
+                default:
+                    return $item;
+            }
+        });
+
+        return array_values($result);
+    }
+
     /**
      * Read File and Get File Content
      */
@@ -112,10 +181,12 @@ trait DBMigrationTrack
      */
     public function getMigrationCreatedBy(string $file): string
     {
+        $currentUser = gethostname();
+
         $repositoryPath = base_path();
         $migrationFilePath = 'database/migrations/'.$file;
         $authorName = trim(shell_exec("git -C $repositoryPath log --follow --format='%an' -- $migrationFilePath"));
 
-        return $authorName != '' ? $authorName : '-';
+        return $authorName != '' ? $authorName : $currentUser;
     }
 }
