@@ -74,8 +74,12 @@ If you want to check standalone feature then you can execute below artisan comma
 > 
 > 
 > You can also filter with --table=, --action=, --status=.
+> Note: "created by" return the github username and if it's not git repo than it shows system username.
 >
-
+<img src="art/track-default.png" width="100%" alt="Track Default"></p>
+<img src="art/track-table.png" width="100%" alt="Track Default"></p>
+<img src="art/track-st-pending.png" width="100%" alt="Track Default"></p>
+<img src="art/track-ac-create.png" width="100%" alt="Track Default"></p>
 **Note:**
 
 You have to set your database name with _DB_DATABASE_ parameter in you laravel .env file to use this feature.
