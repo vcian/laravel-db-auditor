@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v1.8.1 - 2024-01-19
+
+### What's Changed
+
+* Add Current User Name If Git commit not found or not commited the file by @vc-urvin in https://github.com/vcian/laravel-db-auditor/pull/42
+
+**Full Changelog**: https://github.com/vcian/laravel-db-auditor/compare/v1.8.0...v1.8.1
+
 ## v1.8.0 - 2024-01-18
 
 ### What's Changed
