@@ -11,7 +11,7 @@ trait DBMigrationTrack
      * Get Database related information from the migration file.
      * Collect all the details into one place.
      */
-    public function collectDataFromFile($type = 'command')
+    public function collectDataFromFile()
     {
         $data = [];
 
@@ -22,32 +22,17 @@ trait DBMigrationTrack
 
             $fileName = $file['basename'];
 
-            if ($type === 'command') {
-                array_push($data,
-                    [
-                        $this->getMigrationDate($file['filename']),
-                        $this->getMigrationTableName($fileName),
-                        $this->replaceStringWithDots($this->getMigrationFieldName($fileName)),
-                        $this->getMigrationAction($fileName),
-                        $fileName,
-                        $this->getMigrationStatus($file['filename']),
-                        $this->getMigrationCreatedBy($fileName),
-                    ]
-                );
-            } else {
-                array_push($data,
-                    [
-                        'date' => $this->getMigrationDate($file['filename']),
-                        'table' => $this->getMigrationTableName($fileName),
-                        'fields' => $this->getMigrationFieldName($fileName),
-                        'action' => $this->getMigrationAction($fileName),
-                        'file' => $fileName,
-                        'status' => $this->getMigrationStatus($file['filename']),
-                        'createdby' => $this->getMigrationCreatedBy($fileName),
-                    ]
-                );
-            }
-
+            array_push($data,
+                [
+                    $this->getMigrationDate($file['filename']),
+                    $fileName,
+                    $this->getMigrationTableName($fileName),
+                    $this->replaceStringWithDots($this->getMigrationFieldName($fileName)),
+                    $this->getMigrationAction($fileName),
+                    $this->getMigrationStatus($file['filename']),
+                    $this->getMigrationCreatedBy($fileName),
+                ]
+            );
         }
 
         return $data;
@@ -61,11 +46,11 @@ trait DBMigrationTrack
         $result = array_filter($data, function ($item) use ($filter, $filterType) {
 
             switch ($filterType) {
-                case 'table':
-                    return $item[1] === $filter;
-                case 'action':
-                    return $item[3] === $filter;
-                case 'status':
+                case Constant::TABLE:
+                    return $item[2] === $filter;
+                case Constant::ACTION:
+                    return $item[4] === $filter;
+                case Constant::STATUS:
                     return $item[5] === $filter;
                 default:
                     return $item;

@@ -104,4 +104,10 @@ class Constant
     public const PENDING = 'Pending';
 
     public const MIGRATED = 'Migrated';
+
+    public const TABLE = 'table';
+
+    public const ACTION = 'action';
+
+    public const STATUS = 'status';
 }

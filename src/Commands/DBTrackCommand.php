@@ -3,6 +3,7 @@
 namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
+use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\DBMigrationTrack;
 
 use function Laravel\Prompts\table;
@@ -31,36 +32,36 @@ class DBTrackCommand extends Command
      */
     public function handle()
     {
-        $actionKeywords = ['U' => 'Update', 'u' => 'Update', 'c' => 'Create', 'C' => 'Create'];
-        $statusKeywords = ['M' => 'Migrated', 'm' => 'Migrated', 'P' => 'Pending', 'p' => 'Pending'];
+        $actionKeywords = ['U' => Constant::UPDATE, 'u' => Constant::UPDATE, 'c' => Constant::CREATE, 'C' => Constant::CREATE];
+        $statusKeywords = ['M' => Constant::MIGRATED, 'm' => Constant::MIGRATED, 'P' => Constant::PENDING, 'p' => Constant::PENDING];
 
-        $data = $this->collectDataFromFile('command');
+        $data = $this->collectDataFromFile();
 
-        if ($this->option('table')) {
+        if ($this->option(Constant::TABLE)) {
 
-            $data = $this->filter('table', $data, $this->option('table'));
+            $data = $this->filter(Constant::TABLE, $data, $this->option(Constant::TABLE));
 
-        } elseif ($this->option('action')) {
+        } elseif ($this->option(Constant::ACTION)) {
 
-            if (array_key_exists($this->option('action'), $actionKeywords)) {
-                $action = $actionKeywords[$this->option('action')];
+            if (array_key_exists($this->option(Constant::ACTION), $actionKeywords)) {
+                $action = $actionKeywords[$this->option(Constant::ACTION)];
             } else {
-                $action = ucfirst($this->option('action'));
+                $action = ucfirst($this->option(Constant::ACTION));
             }
-            $data = $this->filter('action', $data, $action);
+            $data = $this->filter(Constant::ACTION, $data, $action);
 
-        } elseif ($this->option('status')) {
+        } elseif ($this->option(Constant::STATUS)) {
 
-            if (array_key_exists($this->option('status'), $statusKeywords)) {
-                $status = $statusKeywords[$this->option('status')];
+            if (array_key_exists($this->option(Constant::STATUS), $statusKeywords)) {
+                $status = $statusKeywords[$this->option(Constant::STATUS)];
             } else {
-                $status = ucfirst($this->option('status'));
+                $status = ucfirst($this->option(Constant::STATUS));
             }
-            $data = $this->filter('status', $data, $status);
+            $data = $this->filter(Constant::STATUS, $data, $status);
         }
 
         table(
-            ['Date', 'Table', 'Fields', 'Action', 'File Name', 'Status', 'Created By'],
+            ['Date', 'File Name', 'Table', 'Fields', 'Action', 'Status', 'Created By'],
             $data
         );
 
