@@ -34,7 +34,7 @@ class DBTrackCommand extends Command
         $actionKeywords = ['U' => 'Update', 'u' => 'Update', 'c' => 'Create', 'C' => 'Create'];
         $statusKeywords = ['M' => 'Migrated', 'm' => 'Migrated', 'P' => 'Pending', 'p' => 'Pending'];
 
-        $data = $this->collectDataFromFile();
+        $data = $this->collectDataFromFile('command');
 
         if ($this->option('table')) {
 
@@ -65,59 +65,5 @@ class DBTrackCommand extends Command
         );
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Get Database related information from the migration file.
-     * Collect all the details into one place.
-     */
-    public function collectDataFromFile()
-    {
-        $data = [];
-
-        $filesInFolder = \File::files('database/migrations');
-
-        foreach ($filesInFolder as $path) {
-            $file = pathinfo($path);
-
-            $fileName = $file['basename'];
-
-            array_push($data,
-                [
-                    $this->getMigrationDate($file['filename']),
-                    $this->getMigrationTableName($fileName),
-                    $this->replaceStringWithDots($this->getMigrationFieldName($fileName)),
-                    $this->getMigrationAction($fileName),
-                    $fileName,
-                    $this->getMigrationStatus($file['filename']),
-                    $this->getMigrationCreatedBy($fileName),
-                ]
-            );
-
-        }
-
-        return $data;
-    }
-
-    /**
-     * Filter based on the command argument.
-     */
-    public function filter($filterType, $data, $filter)
-    {
-        $result = array_filter($data, function ($item) use ($filter, $filterType) {
-
-            switch ($filterType) {
-                case 'table':
-                    return $item[1] === $filter;
-                case 'action':
-                    return $item[3] === $filter;
-                case 'status':
-                    return $item[5] === $filter;
-                default:
-                    return $item;
-            }
-        });
-
-        return array_values($result);
     }
 }
