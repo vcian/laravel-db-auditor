@@ -123,12 +123,12 @@ trait DBConnection
     {
         try {
             $query = "SELECT `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`, `NUMERIC_PRECISION`, `NUMERIC_SCALE`  FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ";	
+            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ";
 
             $dataType = DB::select($query)[0];
-            
+
             if(in_array($dataType->DATA_TYPE, Constant::NUMERIC_DATATYPE)) {
-                
+
                 if($dataType->DATA_TYPE === Constant::DATATYPE_DECIMAL) {
                     $size = "(". $dataType->NUMERIC_PRECISION .",". $dataType->NUMERIC_SCALE .")";
                 } else {
@@ -178,10 +178,10 @@ trait DBConnection
     public function getDatabaseSize()
     {
         try {
-            $query = 'SELECT table_schema as db_name, ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size" 
+            $query = 'SELECT table_schema as db_name, ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
                 FROM information_schema.tables
-                where table_schema = "'. $this->getDatabaseName() .'" GROUP BY table_schema'; 
-            
+                where table_schema = "'. $this->getDatabaseName() .'" GROUP BY table_schema';
+
             $result = DB::select($query);
 
             if ($result) {
@@ -190,7 +190,7 @@ trait DBConnection
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        return Constant::NULL;
+        return Constant::DASH;
 
     }
 
@@ -200,7 +200,7 @@ trait DBConnection
             $query = 'SELECT engine FROM information_schema.Tables where TABLE_SCHEMA = "'. $this->getDatabaseName() .'" Limit 1';
 
             $result = DB::select($query);
-            
+
             if ($result) {
                 return $result[0]->ENGINE;
             }
@@ -216,7 +216,7 @@ trait DBConnection
         try {
             $query = 'SELECT DEFAULT_CHARACTER_SET_NAME
                     FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = "'. $this->getDatabaseName() .'"';
-            
+
             $result = DB::select($query);
 
             if ($result) {
