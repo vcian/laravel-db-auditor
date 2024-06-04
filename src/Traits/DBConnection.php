@@ -103,14 +103,15 @@ trait DBConnection
                     ORDER BY
                         (DATA_LENGTH + INDEX_LENGTH) DESC';
             $result = DB::select($query);
+
             if ($result) {
-                return $result[0]->size;
+                return $result[0]->size ?? Constant::DEFAULT_SIZE;
             }
 
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        return Constant::NULL;
+        return Constant::DEFAULT_SIZE;
     }
 
     /**
