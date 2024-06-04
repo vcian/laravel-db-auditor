@@ -110,4 +110,6 @@ class Constant
     public const ACTION = 'action';
 
     public const STATUS = 'status';
+
+    public const DEFAULT_SIZE = '0.00';
 }
