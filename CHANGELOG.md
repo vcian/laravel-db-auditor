@@ -2,6 +2,25 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v1.9.0 - 2024-06-12
+
+### What's Changed
+
+* Now Support Laravel 11.
+* Replace static value with constant and change the ordering of the field by @vc-urvin in https://github.com/vcian/laravel-db-auditor/pull/43
+* #48 Resolve getDatatableSize function return type issue by @vc-dhavaljoshi in https://github.com/vcian/laravel-db-auditor/pull/49
+* Turkish language support added. by @emresasi in https://github.com/vcian/laravel-db-auditor/pull/51
+* #48 resolve issue getTableSize(): Return value must be of type string by @vc-dhavaljoshi in https://github.com/vcian/laravel-db-auditor/pull/52
+* bump version to laravel 11 by @ibrahim-sakr in https://github.com/vcian/laravel-db-auditor/pull/45
+* Bux fixing and improvement.
+
+### New Contributors
+
+* @emresasi made their first contribution in https://github.com/vcian/laravel-db-auditor/pull/51
+* @ibrahim-sakr made their first contribution at https://github.com/vcian/laravel-db-auditor/pull/45
+
+**Full Changelog**: https://github.com/vcian/laravel-db-auditor/compare/v1.8.1...v1.9.0
+
 ## v1.8.1 - 2024-01-19
 
 ### What's Changed
