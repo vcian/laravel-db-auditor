@@ -40,45 +40,42 @@ class DBConstraintCommand extends Command
      */
     public function handle(): int|string
     {
-        try {
+        $tableList = $this->getTableList();
 
-            $tableName = select(
-                label: __('Lang::messages.constraint.question.table_selection'),
-                options: $this->getTableList(),
-                default: $this->getTableList()[0]
-            );
+        $tableName = select(
+            label: __('Lang::messages.constraint.question.table_selection'),
+            options: $tableList,
+            default: reset($tableList)
+        );
 
-            $this->displayTable($tableName);
+        $this->displayTable($tableName);
 
-            if ($tableName) {
+        if ($tableName) {
 
-                $continue = Constant::STATUS_TRUE;
+            $continue = Constant::STATUS_TRUE;
 
-                do {
-                    $noConstraintFields = $this->getNoConstraintFields($tableName);
+            do {
+                $noConstraintFields = $this->getNoConstraintFields($tableName);
 
-                    if (empty($noConstraintFields)) {
-                        $continue = Constant::STATUS_FALSE;
+                if (empty($noConstraintFields)) {
+                    $continue = Constant::STATUS_FALSE;
+                } else {
+                    if (confirm(label: __('Lang::messages.constraint.question.continue'))) {
+
+                        $this->skip = Constant::STATUS_FALSE;
+                        $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
+                        $selectConstrain = select(
+                            label: __('Lang::messages.constraint.question.constraint_selection'),
+                            options: $constraintList,
+                            default: $constraintList[0]
+                        );
+
+                        $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
                     } else {
-                        if (confirm(label: __('Lang::messages.constraint.question.continue'))) {
-
-                            $this->skip = Constant::STATUS_FALSE;
-                            $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
-                            $selectConstrain = select(
-                                label: __('Lang::messages.constraint.question.constraint_selection'),
-                                options: $constraintList,
-                                default: $constraintList[0]
-                            );
-
-                            $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
-                        } else {
-                            $continue = Constant::STATUS_FALSE;
-                        }
+                        $continue = Constant::STATUS_FALSE;
                     }
-                } while ($continue === Constant::STATUS_TRUE);
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
+                }
+            } while ($continue === Constant::STATUS_TRUE);
         }
 
         return self::SUCCESS;

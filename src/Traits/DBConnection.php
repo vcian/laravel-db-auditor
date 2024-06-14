@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Queries\DatabaseCharacterSetClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseEngineClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseFieldDetailsClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseSizeClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldsClass;
@@ -48,15 +49,12 @@ trait DBConnection
      */
     public function checkTableExist(string $tableName): bool
     {
-        try {
-            $tables = $this->getTableList();
+        $tables = $this->getTableList();
 
-            if (in_array($tableName, $tables)) {
-                return Constant::STATUS_TRUE;
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
+        if (in_array($tableName, $tables)) {
+            return Constant::STATUS_TRUE;
         }
+
         return Constant::STATUS_FALSE;
     }
 
@@ -67,14 +65,8 @@ trait DBConnection
      */
     public function getFieldsDetails(string $tableName): array
     {
-        $fieldWithType = Constant::ARRAY_DECLARATION;
-        try {
-            $fieldWithType = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
-                            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' ");
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $fieldWithType;
+        $fieldDetails = new DatabaseFieldDetailsClass($this->getDatabaseDriver(), $this->getDatabaseName(), $tableName);
+        return $fieldDetails() ?? Constant::ARRAY_DECLARATION;
     }
 
     /**
