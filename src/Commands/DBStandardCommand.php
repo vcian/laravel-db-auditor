@@ -10,6 +10,7 @@ use function Termwind\{render};
 class DBStandardCommand extends Command
 {
     use Rules;
+
     /**
      * The name and signature of the console command.
      *
@@ -22,7 +23,7 @@ class DBStandardCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'This command is use for check database table standards';
 
     /**
      * Execute the console command.

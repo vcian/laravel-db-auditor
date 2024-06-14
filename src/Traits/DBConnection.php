@@ -6,9 +6,19 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Queries\DatabaseCharacterSetClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseEngineClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseSizeClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseTableClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldsClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldTypeClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseTableSizeClass;
 
 trait DBConnection
 {
+    /**
+     * @return string
+     */
 
     /**
      * Get Table List
@@ -16,21 +26,8 @@ trait DBConnection
      */
     public function getTableList(): array
     {
-        $tableList = Constant::ARRAY_DECLARATION;
-        try {
-            $tables = DB::select('SHOW TABLES');
-
-            if ($tables) {
-                foreach ($tables as $tableValue) {
-                    foreach ($tableValue as $tableName) {
-                        $tableList[] = $tableName;
-                    }
-                }
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $tableList;
+        $tableList = new DatabaseTableClass($this->getDatabaseDriver());
+        return $tableList();
     }
 
     /**
@@ -40,16 +37,8 @@ trait DBConnection
      */
     public function getFields(string $tableName): array
     {
-        $fields = Constant::ARRAY_DECLARATION;
-        try {
-            $fieldDetails = DB::select("Describe `$tableName`");
-            foreach ($fieldDetails as $field) {
-                $fields[] = $field->Field;
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $fields;
+        $fields = new DatabaseTableFieldsClass($this->getDatabaseDriver(), $this->getDatabaseName(), $tableName);
+        return $fields();
     }
 
     /**
@@ -89,29 +78,13 @@ trait DBConnection
     }
 
     /**
-     * Get Table Size
      * @param string $tableName
      * @return string
      */
     public function getTableSize(string $tableName): string
     {
-        try {
-            $query = 'SELECT
-                    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024),2) AS `size` FROM information_schema.TABLES
-                    WHERE
-                        TABLE_SCHEMA = "' . $this->getDatabaseName() . '" AND TABLE_NAME = "' . $tableName . '"
-                    ORDER BY
-                        (DATA_LENGTH + INDEX_LENGTH) DESC';
-            $result = DB::select($query);
-
-            if ($result) {
-                return $result[0]->size ?? Constant::DEFAULT_SIZE;
-            }
-
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return Constant::DEFAULT_SIZE;
+        $size = new DatabaseTableSizeClass($this->getDatabaseDriver(), $this->getDatabaseName(), $tableName);
+        return $size();
     }
 
     /**
@@ -122,30 +95,14 @@ trait DBConnection
      */
     public function getFieldDataType(string $tableName, string $fieldName): array|bool
     {
-        try {
-            $query = "SELECT `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`, `NUMERIC_PRECISION`, `NUMERIC_SCALE`  FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_NAME` = '" . $fieldName . "' ";
+        $fieldDataType = new DatabaseTableFieldTypeClass(
+            $this->getDatabaseDriver(),
+            $this->getDatabaseName(),
+            $tableName,
+            $fieldName
+        );
 
-            $dataType = DB::select($query)[0];
-
-            if(in_array($dataType->DATA_TYPE, Constant::NUMERIC_DATATYPE)) {
-
-                if($dataType->DATA_TYPE === Constant::DATATYPE_DECIMAL) {
-                    $size = "(". $dataType->NUMERIC_PRECISION .",". $dataType->NUMERIC_SCALE .")";
-                } else {
-                    $size = $dataType->NUMERIC_PRECISION;
-                }
-            } else {
-                $size = $dataType->CHARACTER_MAXIMUM_LENGTH;
-            }
-
-            if (isset($dataType->DATA_TYPE) && $dataType !== null) {
-                return ['data_type' => $dataType->DATA_TYPE, 'size' => $size];
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return Constant::STATUS_FALSE;
+        return $fieldDataType();
     }
 
     /**
@@ -171,62 +128,46 @@ trait DBConnection
         return Constant::STATUS_FALSE;
     }
 
-    public function getDatabaseName()
+    /**
+     * @return string
+     */
+    public function getDatabaseSize(): string
+    {
+        $size = new DatabaseSizeClass($this->getDatabaseDriver(), $this->getDatabaseName());
+        return $size();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDatabaseEngin(): string
+    {
+        $engine = new DatabaseEngineClass($this->getDatabaseDriver(), $this->getDatabaseName());
+        return $engine();
+    }
+
+    /**
+     * @return string
+     */
+    public function getCharacterSetName() : string
+    {
+        $characterSet = new DatabaseCharacterSetClass($this->getDatabaseDriver(), $this->getDatabaseName());
+        return $characterSet();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDatabaseName(): string
     {
         return DB::connection()->getDatabaseName();
     }
 
-    public function getDatabaseSize()
+    /**
+     * @return string
+     */
+    public function getDatabaseDriver(): string
     {
-        try {
-            $query = 'SELECT table_schema as db_name, ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
-                FROM information_schema.tables
-                where table_schema = "'. $this->getDatabaseName() .'" GROUP BY table_schema';
-
-            $result = DB::select($query);
-
-            if ($result) {
-                return $result[0]->size;
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return Constant::DASH;
-
-    }
-
-    public function getDatabaseEngin()
-    {
-        try {
-            $query = 'SELECT engine FROM information_schema.Tables where TABLE_SCHEMA = "'. $this->getDatabaseName() .'" Limit 1';
-
-            $result = DB::select($query);
-
-            if ($result) {
-                return $result[0]->ENGINE;
-            }
-
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return Constant::NULL;
-    }
-
-    public function getCharacterSetName()
-    {
-        try {
-            $query = 'SELECT DEFAULT_CHARACTER_SET_NAME
-                    FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = "'. $this->getDatabaseName() .'"';
-
-            $result = DB::select($query);
-
-            if ($result) {
-                return $result[0]->DEFAULT_CHARACTER_SET_NAME;
-            }
-
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return Constant::NULL;
+        return DB::connection()->getDriverName();
     }
 }

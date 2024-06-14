@@ -24,16 +24,13 @@ trait Rules
     public function tablesRule(): array
     {
         $checkTableStandard = Constant::ARRAY_DECLARATION;
-        try {
-            $tableList = $this->getTableList();
-            foreach ($tableList as $tableName) {
-                $status = $this->checkStatus($tableName);
-                $size = $this->getTableSize($tableName);
-                $checkTableStandard[] = ["name" => $tableName, "status" => $status, "size" => $size];
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
+        $tableList = $this->getTableList();
+        foreach ($tableList as $tableName) {
+            $status = $this->checkStatus($tableName);
+            $size = $this->getTableSize($tableName);
+            $checkTableStandard[] = ["name" => $tableName, "status" => $status, "size" => $size];
         }
+
         return $checkTableStandard;
     }
 
@@ -74,7 +71,7 @@ trait Rules
             $this->setConvenationName($name);
             $checkConvention = $this->nameConvention();
             $checkAlphabets = $this->nameHasAlphabetCharacterSet();
-            
+
             if ($type === Constant::TABLE_RULES) {
                 $checkLength = $this->nameHasFixLength();
                 $checkNamePlural = $this->nameAlwaysPlural();
