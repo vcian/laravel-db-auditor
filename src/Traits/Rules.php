@@ -5,12 +5,11 @@ namespace Vcian\LaravelDBAuditor\Traits;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
-use Vcian\LaravelDBAuditor\Traits\DBConnection;
 use Vcian\LaravelDBAuditor\Traits\NamingRules;
 
 trait Rules
 {
-    use NamingRules, DBConnection;
+    use NamingRules;
 
     /**
      * @var array
