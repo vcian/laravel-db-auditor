@@ -29,12 +29,24 @@ class DBAuditorServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->publishes([
-            __DIR__.'/../resource/images' => public_path('auditor/icon'),
+            __DIR__ . '/../resource/images' => public_path('auditor/icon'),
         ], 'public');
 
-        $this->loadViewsFrom(__DIR__.'/../views', 'DBAuditor');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
-        $this->loadTranslationsFrom(__DIR__.'/../Lang/', 'Lang');
+        $this->loadViewsFrom(__DIR__ . '/../views', 'DBAuditor');
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
+        $this->loadHelpers();
+        $this->loadTranslationsFrom(__DIR__ . '/../Lang/', 'Lang');
     }
+
+    /**
+     * @return void
+     */
+    protected function loadHelpers(): void
+    {
+        if (file_exists(__DIR__ . '/../helpers.php')) {
+            require_once __DIR__ . '/../helpers.php';
+        }
+    }
+
 }
