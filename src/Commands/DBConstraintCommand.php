@@ -2,9 +2,7 @@
 
 namespace Vcian\LaravelDBAuditor\Commands;
 
-use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Audit;
 
@@ -35,11 +33,13 @@ class DBConstraintCommand extends Command
      */
     protected $description = 'Table Constraint Playground';
 
+    protected string $connection;
     /**
      * Execute the console command.
      */
     public function handle(): int|string
     {
+        $this->connection = connection_driver();
         $tableList = $this->getTableList();
 
         $tableName = select(
@@ -67,7 +67,7 @@ class DBConstraintCommand extends Command
                         $selectConstrain = select(
                             label: __('Lang::messages.constraint.question.constraint_selection'),
                             options: $constraintList,
-                            default: $constraintList[0]
+                            default: reset($constraintList)
                         );
 
                         $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
@@ -87,11 +87,13 @@ class DBConstraintCommand extends Command
     public function displayTable(string $tableName): void
     {
 
+        $fields = $this->getFieldsDetails($tableName);
+
         $data = [
             'table' => $tableName,
             'size' => $this->getTableSize($tableName),
-            'fields' => $this->getFieldsDetails($tableName),
-            'field_count' => count($this->getFieldsDetails($tableName)),
+            'fields' => $fields,
+            'field_count' => count($fields),
             'constrain' => [
                 'primary' => $this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY),
                 'unique' => $this->getConstraintField($tableName, Constant::CONSTRAINT_UNIQUE_KEY),
@@ -100,7 +102,7 @@ class DBConstraintCommand extends Command
             ],
         ];
 
-        render(view('DBAuditor::constraint', ['data' => $data]));
+        render(view('DBAuditor::'.$this->connection.'.constraint', ['data' => $data]));
     }
 
     /**

@@ -7,13 +7,12 @@ use Vcian\LaravelDBAuditor\Constants\Constant;
 
 class DatabaseTableFieldTypeClass
 {
-    public function __construct(
-        protected string $driver,
-        protected string $database,
-        protected string $table,
-        protected string $field
-    )
+    protected string $driver, $database;
+
+    public function __construct(protected string $table, protected string $field)
     {
+        $this->driver = connection_driver();
+        $this->database = database_name();
     }
 
 

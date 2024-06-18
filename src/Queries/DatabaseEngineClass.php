@@ -6,8 +6,11 @@ use Vcian\LaravelDBAuditor\Constants\Constant;
 
 class DatabaseEngineClass
 {
-    public function __construct(protected string $driver, protected string $database)
+    protected string $driver,$database;
+    public function __construct()
     {
+        $this->driver = connection_driver();
+        $this->database = database_name();
     }
 
     public function __invoke(): string

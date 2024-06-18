@@ -7,8 +7,12 @@ use Vcian\LaravelDBAuditor\Constants\Constant;
 
 class DatabaseTableSizeClass
 {
-    public function __construct(protected string $driver, protected string $database, protected string $table)
+    protected string $driver, $database;
+
+    public function __construct(protected string $table)
     {
+        $this->driver = connection_driver();
+        $this->database = database_name();
     }
 
     public function __invoke(): string

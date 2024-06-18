@@ -6,8 +6,12 @@ use Illuminate\Support\Facades\DB;
 
 class DatabaseTableFieldsClass
 {
-    public function __construct(protected string $driver, protected string $database, protected string $table)
+    protected string $driver, $database;
+
+    public function __construct(protected string $table)
     {
+        $this->driver = connection_driver();
+        $this->database = database_name();
     }
 
 
@@ -25,7 +29,7 @@ class DatabaseTableFieldsClass
     public function sqlite(): array
     {
         $fields = $this->select("PRAGMA table_info(`$this->table`)");
-        return array_column($fields,'name');
+        return array_column($fields, 'name');
     }
 
     /**
@@ -43,6 +47,6 @@ class DatabaseTableFieldsClass
     public function mysql(): array
     {
         $fields = $this->select("Describe `$this->table`");
-        return array_column($fields,'Field');
+        return array_column($fields, 'Field');
     }
 }

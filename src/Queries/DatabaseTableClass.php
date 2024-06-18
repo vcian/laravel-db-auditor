@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\DB;
 
 class DatabaseTableClass
 {
-    public function __construct(protected string $driver)
+    protected string $driver;
+
+    public function __construct()
     {
+        $this->driver = connection_driver();
     }
 
     public function __invoke(): array

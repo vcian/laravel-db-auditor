@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\DB;
 
 class DatabaseFieldDetailsClass
 {
-    public function __construct(protected string $driver, protected string $database, protected string $table)
+    protected string $driver, $database;
+    public function __construct(protected string $table)
     {
+        $this->driver = connection_driver();
+        $this->database = database_name();
     }
 
 
@@ -41,8 +44,7 @@ class DatabaseFieldDetailsClass
      */
     public function mysql(): array
     {
-        $data =  $this->select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
+        return $this->select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
                             WHERE `TABLE_SCHEMA`= '" . $this->database . "' AND `TABLE_NAME`= '" . $this->table . "' ");
-        dd($data);
     }
 }
