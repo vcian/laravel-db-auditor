@@ -15,21 +15,11 @@ use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldsClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldTypeClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableSizeClass;
 
-trait DBConnection
+trait DBFunctions
 {
     /**
      * @return string
      */
-
-    /**
-     * Get Table List
-     * @return array
-     */
-    public function getTableList(): array
-    {
-        $tableList = new DatabaseTableClass($this->getDatabaseDriver());
-        return $tableList();
-    }
 
     /**
      * Get list of datatype of field and name of the field by table name
@@ -38,7 +28,7 @@ trait DBConnection
      */
     public function getFields(string $tableName): array
     {
-        $fields = new DatabaseTableFieldsClass($this->getDatabaseDriver(), $this->getDatabaseName(), $tableName);
+        $fields = new DatabaseTableFieldsClass($tableName);
         return $fields();
     }
 
@@ -59,13 +49,23 @@ trait DBConnection
     }
 
     /**
+     * Get Table List
+     * @return array
+     */
+    public function getTableList(): array
+    {
+        $tableList = new DatabaseTableClass();
+        return $tableList();
+    }
+
+    /**
      * Get field with type by table
      * @param string $tableName
      * @return array
      */
     public function getFieldsDetails(string $tableName): array
     {
-        $fieldDetails = new DatabaseFieldDetailsClass($this->getDatabaseDriver(), $this->getDatabaseName(), $tableName);
+        $fieldDetails = new DatabaseFieldDetailsClass($tableName);
         return $fieldDetails() ?? Constant::ARRAY_DECLARATION;
     }
 
@@ -75,7 +75,7 @@ trait DBConnection
      */
     public function getTableSize(string $tableName): string
     {
-        $size = new DatabaseTableSizeClass($this->getDatabaseDriver(), $this->getDatabaseName(), $tableName);
+        $size = new DatabaseTableSizeClass($tableName);
         return $size();
     }
 
@@ -88,8 +88,6 @@ trait DBConnection
     public function getFieldDataType(string $tableName, string $fieldName): array|bool
     {
         $fieldDataType = new DatabaseTableFieldTypeClass(
-            $this->getDatabaseDriver(),
-            $this->getDatabaseName(),
             $tableName,
             $fieldName
         );
@@ -106,11 +104,11 @@ trait DBConnection
     public function checkFieldHasIndex(string $tableName, string $fieldName): bool
     {
         try {
-            $query = "SHOW INDEX FROM ".$this->getDatabaseName().".".$tableName."";
+            $query = "SHOW INDEX FROM " . database_name() . "." . $tableName . "";
             $fieldConstraints = DB::select($query);
 
-            foreach($fieldConstraints as $fieldConstraint) {
-                if($fieldConstraint->Column_name === $fieldName && str_contains($fieldConstraint->Key_name, 'index')) {
+            foreach ($fieldConstraints as $fieldConstraint) {
+                if ($fieldConstraint->Column_name === $fieldName && str_contains($fieldConstraint->Key_name, 'index')) {
                     return Constant::STATUS_TRUE;
                 }
             }
@@ -125,7 +123,7 @@ trait DBConnection
      */
     public function getDatabaseSize(): string
     {
-        $size = new DatabaseSizeClass($this->getDatabaseDriver(), $this->getDatabaseName());
+        $size = new DatabaseSizeClass();
         return $size();
     }
 
@@ -134,32 +132,16 @@ trait DBConnection
      */
     public function getDatabaseEngin(): string
     {
-        $engine = new DatabaseEngineClass($this->getDatabaseDriver(), $this->getDatabaseName());
+        $engine = new DatabaseEngineClass();
         return $engine();
     }
 
     /**
      * @return string
      */
-    public function getCharacterSetName() : string
+    public function getCharacterSetName(): string
     {
-        $characterSet = new DatabaseCharacterSetClass($this->getDatabaseDriver(), $this->getDatabaseName());
+        $characterSet = new DatabaseCharacterSetClass();
         return $characterSet();
-    }
-
-    /**
-     * @return string
-     */
-    public function getDatabaseName(): string
-    {
-        return DB::connection()->getDatabaseName();
-    }
-
-    /**
-     * @return string
-     */
-    public function getDatabaseDriver(): string
-    {
-        return DB::connection()->getDriverName();
     }
 }
