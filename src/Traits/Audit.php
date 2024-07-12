@@ -8,11 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
-use Vcian\LaravelDBAuditor\Traits\DBConnection;
 
 trait Audit
 {
-    use DBConnection;
+    use DBFunctions;
 
     /**
      * Check field exist or not
@@ -39,7 +38,7 @@ trait Audit
         $fields = Constant::ARRAY_DECLARATION;
         try {
             $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' AND ( `COLUMN_KEY` = '' OR `COLUMN_KEY` = 'UNI' ) ");
+            WHERE `TABLE_SCHEMA`= '" . database_name() . "' AND `TABLE_NAME`= '" . $tableName . "' AND ( `COLUMN_KEY` = '' OR `COLUMN_KEY` = 'UNI' ) ");
 
             foreach ($fieldList as $field) {
                 if (!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
@@ -93,6 +92,23 @@ trait Audit
     }
 
     /**
+     * Check Table Has Value
+     * @param string $tableName
+     * @return bool
+     */
+    public function tableHasValue(string $tableName): bool
+    {
+        try {
+            if (DB::select("Select * from " . $tableName)) {
+                return Constant::STATUS_TRUE;
+            }
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+        return Constant::STATUS_FALSE;
+    }
+
+    /**
      * Get constraint fields
      * @param string $tableName
      * @param string $input
@@ -107,17 +123,17 @@ trait Audit
                 return [];
             }
 
-            if($input === Constant::CONSTRAINT_INDEX_KEY) {
+            if ($input === Constant::CONSTRAINT_INDEX_KEY) {
                 $result = DB::select("SHOW INDEX FROM `{$tableName}` where Key_name != 'PRIMARY' and Key_name not like '%unique%'");
             } else {
                 $result = DB::select("SHOW KEYS FROM `{$tableName}` WHERE Key_name LIKE '%" . strtolower($input) . "%'");
             }
 
-            
+
             if ($input === Constant::CONSTRAINT_FOREIGN_KEY) {
                 return $this->getForeignKeyDetails($tableName);
             }
-            
+
             if ($result) {
                 foreach ($result as $value) {
                     $constraintFields[] = $value->Column_name;
@@ -141,8 +157,8 @@ trait Audit
             $resultForeignKey = DB::select("SELECT i.TABLE_SCHEMA, i.TABLE_NAME, i.CONSTRAINT_TYPE,k.COLUMN_NAME, i.CONSTRAINT_NAME,
             k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i
             LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME
-            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . $this->getDatabaseName() . "' AND i.TABLE_NAME = '" . $tableName . "'");
-            
+            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . database_name() . "' AND i.TABLE_NAME = '" . $tableName . "'");
+
             if ($resultForeignKey) {
                 foreach ($resultForeignKey as $value) {
                     $foreignFieldDetails[] = [
@@ -159,20 +175,34 @@ trait Audit
     }
 
     /**
-     * Check Table Has Value
+     * Get Unique Fields
      * @param string $tableName
-     * @return bool
+     * @param array $fields
+     * @return array
      */
-    public function tableHasValue(string $tableName): bool
+    public function getUniqueFields(string $tableName, array $fields): array
     {
+        $uniqueField = Constant::ARRAY_DECLARATION;
         try {
-            if (DB::select("Select * from " . $tableName)) {
-                return Constant::STATUS_TRUE;
+            foreach ($fields as $field) {
+
+                $getUniqueQuery = "SELECT * FROM INFORMATION_SCHEMA.STATISTICS
+                          WHERE TABLE_SCHEMA = '" . database_name() . "' AND TABLE_NAME = '" . $tableName . "' AND COLUMN_NAME = '" . $field . "' AND NON_UNIQUE = 0";
+                $resultUniqueQuery = DB::select($getUniqueQuery);
+                if (!$resultUniqueQuery) {
+                    $query = "SELECT `" . $field . "`, COUNT(`" . $field . "`) as count FROM " . $tableName . " GROUP BY `" . $field . "` HAVING COUNT(`" . $field . "`) > 1";
+                    $result = DB::select($query);
+
+                    if (empty($result)) {
+                        $uniqueField[] = $field;
+                    }
+                }
+
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
-        return Constant::STATUS_FALSE;
+        return $uniqueField;
     }
 
     /**
@@ -190,7 +220,8 @@ trait Audit
         string $constraint,
         string $referenceTableName = null,
         string $referenceField = null
-    ): bool {
+    ): bool
+    {
         try {
             switch ($constraint) {
                 case Constant::CONSTRAINT_PRIMARY_KEY:
@@ -231,7 +262,8 @@ trait Audit
         string $fieldName,
         string $referenceField = null,
         string $referenceTableName = null
-    ): bool {
+    ): bool
+    {
         try {
             $fieldDetails = $this->getFieldDataType($tableName, $fieldName);
             $fieldDataType = Constant::NULL;
@@ -269,36 +301,5 @@ trait Audit
             Log::error($exception->getMessage());
         }
         return Constant::STATUS_TRUE;
-    }
-
-    /**
-     * Get Unique Fields
-     * @param string $tableName
-     * @param array $fields
-     * @return array
-     */
-    public function getUniqueFields(string $tableName, array $fields): array
-    {
-        $uniqueField = Constant::ARRAY_DECLARATION;
-        try {
-            foreach ($fields as $field) {
-
-                $getUniqueQuery = "SELECT * FROM INFORMATION_SCHEMA.STATISTICS
-                          WHERE TABLE_SCHEMA = '". $this->getDatabaseName() ."' AND TABLE_NAME = '".$tableName."' AND COLUMN_NAME = '".$field."' AND NON_UNIQUE = 0";
-                $resultUniqueQuery = DB::select($getUniqueQuery);
-                if(!$resultUniqueQuery) {
-                    $query = "SELECT `" . $field . "`, COUNT(`" . $field . "`) as count FROM " . $tableName . " GROUP BY `" . $field . "` HAVING COUNT(`" . $field . "`) > 1";
-                    $result = DB::select($query);
-    
-                    if (empty($result)) {
-                        $uniqueField[] = $field;
-                    }                    
-                }
-
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $uniqueField;
     }
 }

@@ -2,9 +2,7 @@
 
 namespace Vcian\LaravelDBAuditor\Commands;
 
-use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Audit;
 
@@ -35,50 +33,49 @@ class DBConstraintCommand extends Command
      */
     protected $description = 'Table Constraint Playground';
 
+    protected string $connection;
     /**
      * Execute the console command.
      */
     public function handle(): int|string
     {
-        try {
+        $this->connection = connection_driver();
+        $tableList = $this->getTableList();
 
-            $tableName = select(
-                label: __('Lang::messages.constraint.question.table_selection'),
-                options: $this->getTableList(),
-                default: $this->getTableList()[0]
-            );
+        $tableName = select(
+            label: __('Lang::messages.constraint.question.table_selection'),
+            options: $tableList,
+            default: reset($tableList)
+        );
 
-            $this->displayTable($tableName);
+        $this->displayTable($tableName);
 
-            if ($tableName) {
+        if ($tableName) {
 
-                $continue = Constant::STATUS_TRUE;
+            $continue = Constant::STATUS_TRUE;
 
-                do {
-                    $noConstraintFields = $this->getNoConstraintFields($tableName);
+            do {
+                $noConstraintFields = $this->getNoConstraintFields($tableName);
 
-                    if (empty($noConstraintFields)) {
-                        $continue = Constant::STATUS_FALSE;
+                if (empty($noConstraintFields)) {
+                    $continue = Constant::STATUS_FALSE;
+                } else {
+                    if (confirm(label: __('Lang::messages.constraint.question.continue'))) {
+
+                        $this->skip = Constant::STATUS_FALSE;
+                        $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
+                        $selectConstrain = select(
+                            label: __('Lang::messages.constraint.question.constraint_selection'),
+                            options: $constraintList,
+                            default: reset($constraintList)
+                        );
+
+                        $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
                     } else {
-                        if (confirm(label: __('Lang::messages.constraint.question.continue'))) {
-
-                            $this->skip = Constant::STATUS_FALSE;
-                            $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
-                            $selectConstrain = select(
-                                label: __('Lang::messages.constraint.question.constraint_selection'),
-                                options: $constraintList,
-                                default: $constraintList[0]
-                            );
-
-                            $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
-                        } else {
-                            $continue = Constant::STATUS_FALSE;
-                        }
+                        $continue = Constant::STATUS_FALSE;
                     }
-                } while ($continue === Constant::STATUS_TRUE);
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
+                }
+            } while ($continue === Constant::STATUS_TRUE);
         }
 
         return self::SUCCESS;
@@ -90,11 +87,13 @@ class DBConstraintCommand extends Command
     public function displayTable(string $tableName): void
     {
 
+        $fields = $this->getFieldsDetails($tableName);
+
         $data = [
             'table' => $tableName,
             'size' => $this->getTableSize($tableName),
-            'fields' => $this->getFieldsDetails($tableName),
-            'field_count' => count($this->getFieldsDetails($tableName)),
+            'fields' => $fields,
+            'field_count' => count($fields),
             'constrain' => [
                 'primary' => $this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY),
                 'unique' => $this->getConstraintField($tableName, Constant::CONSTRAINT_UNIQUE_KEY),
@@ -103,7 +102,7 @@ class DBConstraintCommand extends Command
             ],
         ];
 
-        render(view('DBAuditor::constraint', ['data' => $data]));
+        render(view('DBAuditor::'.$this->connection.'.constraint', ['data' => $data]));
     }
 
     /**

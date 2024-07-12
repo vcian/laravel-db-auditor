@@ -4,12 +4,14 @@ namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
 use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Traits\DBFunctions;
 use Vcian\LaravelDBAuditor\Traits\Rules;
 use function Termwind\{render};
 
 class DBStandardCommand extends Command
 {
-    use Rules;
+    use Rules, DBFunctions;
+
     /**
      * The name and signature of the console command.
      *
@@ -22,7 +24,9 @@ class DBStandardCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'This command is use for check database table standards';
+
+    protected string $connection;
 
     /**
      * Execute the console command.
@@ -30,12 +34,13 @@ class DBStandardCommand extends Command
     public function handle(): ?int
     {
         $tableStatus = $this->tablesRule();
+        $this->connection = connection_driver();
 
         if (!$tableStatus) {
             render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
         }
 
-        render(view('DBAuditor::standard', ['tableStatus' => $tableStatus]));
+        render(view('DBAuditor::'.$this->connection.'.standard', ['tableStatus' => $tableStatus]));
 
         $continue = Constant::STATUS_TRUE;
 
@@ -51,7 +56,7 @@ class DBStandardCommand extends Command
             if (!$tableStatus) {
                 return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
             } else {
-                render(view('DBAuditor::fail_standard_table', ['tableStatus' => $tableStatus]));
+                render(view('DBAuditor::'.$this->connection.'.fail_standard_table', ['tableStatus' => $tableStatus]));
             }
 
             $report = $this->confirm("Do you want see other table report?");
