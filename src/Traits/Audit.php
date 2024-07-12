@@ -1,6 +1,6 @@
 <?php
 
-namespace Vcian\LaravelDBAuditor\Services;
+namespace Vcian\LaravelDBAuditor\Traits;
 
 use Exception;
 use Illuminate\Support\Facades\Artisan;
@@ -8,53 +8,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Traits\DBConnection;
 
-class AuditService
+trait Audit
 {
-    public function __construct(protected DBConnectionService $dBConnectionService)
-    {
-        //
-    }
-
-    /**
-     * Get All Table List
-     * @return array
-     */
-    public function getTablesList(): array
-    {
-        return $this->dBConnectionService->getTableList();
-    }
-
-    /**
-     * Get Table Fields
-     * @param string $tableName
-     * @return array
-     */
-    public function getTableFields(string $tableName): array
-    {
-        return $this->dBConnectionService->getFieldsDetails($tableName);
-    }
-
-    /**
-     * Get Table Size
-     * @param string $tableName
-     * @return string $size
-     * @return string
-     */
-    public function getTableSize(string $tableName): string
-    {
-        return $this->dBConnectionService->getTableSize($tableName);
-    }
-
-    /**
-     * Check table exist or not
-     * @param string $tableName
-     * @return bool
-     */
-    public function checkTableExistOrNot(string $tableName): bool
-    {
-        return $this->dBConnectionService->checkTableExist($tableName);
-    }
+    use DBConnection;
 
     /**
      * Check field exist or not
@@ -64,7 +22,7 @@ class AuditService
      */
     public function checkFieldExistOrNot(string $tableName, string $field): bool
     {
-        $fields = $this->dBConnectionService->getFields($tableName);
+        $fields = $this->getFields($tableName);
         if (in_array($field, $fields)) {
             return Constant::STATUS_TRUE;
         }
@@ -81,17 +39,19 @@ class AuditService
         $fields = Constant::ARRAY_DECLARATION;
         try {
             $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . env('DB_DATABASE') . "' AND `TABLE_NAME`= '" . $tableName . "' AND `COLUMN_KEY` = '' ");
+            WHERE `TABLE_SCHEMA`= '" . $this->getDatabaseName() . "' AND `TABLE_NAME`= '" . $tableName . "' AND ( `COLUMN_KEY` = '' OR `COLUMN_KEY` = 'UNI' ) ");
 
             foreach ($fieldList as $field) {
                 if (!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
-                    if (str_contains($field->DATA_TYPE, "int")) {
-                        $fields['integer'][] = $field->COLUMN_NAME;
-                    }
-                    $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $field->COLUMN_NAME);
-                    
-                    if($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
-                        $fields['mix'][] = $field->COLUMN_NAME;
+                    if (!$this->checkFieldHasIndex($tableName, $field->COLUMN_NAME)) {
+                        if (str_contains($field->DATA_TYPE, "int")) {
+                            $fields['integer'][] = $field->COLUMN_NAME;
+                        }
+                        $fieldDetails = $this->getFieldDataType($tableName, $field->COLUMN_NAME);
+
+                        if ($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
+                            $fields['mix'][] = $field->COLUMN_NAME;
+                        }
                     }
                 }
             }
@@ -113,19 +73,19 @@ class AuditService
 
         if (!empty($fields['integer'])) {
 
-            if(!$this->tableHasValue($tableName)) {
+            if (!$this->tableHasValue($tableName)) {
                 $constrainList[] = Constant::CONSTRAINT_FOREIGN_KEY;
-            }
 
-            if (empty($this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY))) {
-                $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
+                if (empty($this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY))) {
+                    $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
+                }
             }
         }
 
         if (!empty($fields['mix'])) {
             $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
 
-            if(!empty($this->getUniqueFields($tableName, $fields['mix']))) {
+            if (!empty($this->getUniqueFields($tableName, $fields['mix']))) {
                 $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
             }
         }
@@ -143,16 +103,21 @@ class AuditService
         try {
             $constraintFields = Constant::ARRAY_DECLARATION;
 
-            if (!$this->dBConnectionService->checkTableExist($tableName)) {
+            if (!$this->checkTableExist($tableName)) {
                 return [];
             }
 
-            $result = DB::select("SHOW KEYS FROM {$tableName} WHERE Key_name LIKE '%" . strtolower($input) . "%'");
+            if($input === Constant::CONSTRAINT_INDEX_KEY) {
+                $result = DB::select("SHOW INDEX FROM `{$tableName}` where Key_name != 'PRIMARY' and Key_name not like '%unique%'");
+            } else {
+                $result = DB::select("SHOW KEYS FROM `{$tableName}` WHERE Key_name LIKE '%" . strtolower($input) . "%'");
+            }
 
+            
             if ($input === Constant::CONSTRAINT_FOREIGN_KEY) {
                 return $this->getForeignKeyDetails($tableName);
             }
-
+            
             if ($result) {
                 foreach ($result as $value) {
                     $constraintFields[] = $value->Column_name;
@@ -176,8 +141,8 @@ class AuditService
             $resultForeignKey = DB::select("SELECT i.TABLE_SCHEMA, i.TABLE_NAME, i.CONSTRAINT_TYPE,k.COLUMN_NAME, i.CONSTRAINT_NAME,
             k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i
             LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME
-            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . env('DB_DATABASE') . "' AND i.TABLE_NAME = '" . $tableName . "'");
-
+            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . $this->getDatabaseName() . "' AND i.TABLE_NAME = '" . $tableName . "'");
+            
             if ($resultForeignKey) {
                 foreach ($resultForeignKey as $value) {
                     $foreignFieldDetails[] = [
@@ -220,10 +185,12 @@ class AuditService
      * @return bool
      */
     public function addConstraint(
-        string $table, string $field,
-        string $constraint, string $referenceTableName = null,
-        string $referenceField = null): bool
-    {
+        string $table,
+        string $field,
+        string $constraint,
+        string $referenceTableName = null,
+        string $referenceField = null
+    ): bool {
         try {
             switch ($constraint) {
                 case Constant::CONSTRAINT_PRIMARY_KEY:
@@ -258,22 +225,19 @@ class AuditService
      * @return bool
      */
     public function migrateConstrain(
-        string $fileName, string $constrainName,
-        string $tableName, string $fieldName,
-        string $referenceField = null, string $referenceTableName = null): bool
-    {
+        string $fileName,
+        string $constrainName,
+        string $tableName,
+        string $fieldName,
+        string $referenceField = null,
+        string $referenceTableName = null
+    ): bool {
         try {
-            $fieldDetails = $this->dBConnectionService->getFieldDataType($tableName, $fieldName);
+            $fieldDetails = $this->getFieldDataType($tableName, $fieldName);
             $fieldDataType = Constant::NULL;
 
             if (!empty($fieldDetails['data_type'])) {
-                if ($fieldDetails['data_type'] === Constant::DATATYPE_VARCHAR) {
-                    $fieldDataType = Constant::DATATYPE_STRING;
-                } elseif ($fieldDetails['data_type'] === Constant::DATATYPE_INT) {
-                    $fieldDataType = Constant::DATATYPE_INTEGER;
-                } else {
-                    $fieldDataType = $fieldDetails['data_type'];
-                }
+                $fieldDataType = Constant::MYSQL_DATATYPE_TO_LARAVEL_DATATYPE[$fieldDetails['data_type']] ?? $fieldDetails['data_type'];
             }
 
             $stubVariables = [
@@ -281,8 +245,7 @@ class AuditService
                 "fieldName" => $fieldName,
                 "referenceField" => $referenceField,
                 "referenceTable" => $referenceTableName,
-                "dataType" => $fieldDataType,
-                'length' => $fieldDetails['size'],
+                "dataType" => $fieldDataType
             ];
 
             $contents = file_get_contents(__DIR__ . "/../Database/migrations/" . $fileName);
@@ -319,14 +282,20 @@ class AuditService
         $uniqueField = Constant::ARRAY_DECLARATION;
         try {
             foreach ($fields as $field) {
-                $query = "SELECT `". $field ."`, COUNT(`". $field ."`) as count FROM ".$tableName." GROUP BY `".$field."` HAVING COUNT(`".$field."`) > 1";
-                $result = DB::select($query);
 
-                if (empty($result)) {
-                    $uniqueField[] = $field;
+                $getUniqueQuery = "SELECT * FROM INFORMATION_SCHEMA.STATISTICS
+                          WHERE TABLE_SCHEMA = '". $this->getDatabaseName() ."' AND TABLE_NAME = '".$tableName."' AND COLUMN_NAME = '".$field."' AND NON_UNIQUE = 0";
+                $resultUniqueQuery = DB::select($getUniqueQuery);
+                if(!$resultUniqueQuery) {
+                    $query = "SELECT `" . $field . "`, COUNT(`" . $field . "`) as count FROM " . $tableName . " GROUP BY `" . $field . "` HAVING COUNT(`" . $field . "`) > 1";
+                    $result = DB::select($query);
+    
+                    if (empty($result)) {
+                        $uniqueField[] = $field;
+                    }                    
                 }
-            }
 
+            }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }

@@ -20,7 +20,7 @@ return [
             'table_selection' => 'Which table would you like to audit?',
             'continue' => 'Do you want add more constraint?',
             'constraint_selection' => 'Please select a constraint which you want to add.',
-            'field_selection' => 'Please select a field to add constraint.',
+            'field_selection' => 'Please select a field to add constraint',
             'foreign_table' => 'Please add foreign table name.',
             'foreign_field' => 'Please add primary key name of foreign table.',
         ],
@@ -42,7 +42,7 @@ return [
             'plural' => 'Table name should be plural.',
             'space' => 'Space between words is not advised. Please Use Underscore "_"',
             'alphabets' => 'Numbers are not for names and is not advised! Please use alphabets for name.',
-            'lowercase' => 'Name should be in lowercase.',
+            'convention' => 'Name should be in lowercase, camelCase or snake_case.',
             'datatype_change' => 'Here you can use CHAR datatype instead of VARCHAR if data values in a column are of the same length.',
         ],
         'question' => [

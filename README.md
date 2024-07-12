@@ -1,4 +1,4 @@
-<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/laravel-db-auditor-hr.svg" width="50%" alt="Logo Laravel DB Auditor"></p>
+<p align="center"><img src="art/laravel-db-auditor-hr.svg" width="50%" alt="Logo Laravel DB Auditor"></p>
 
 ![Packagist License](https://img.shields.io/packagist/l/vcian/laravel-db-auditor?style=for-the-badge)
 [![Total Downloads](https://img.shields.io/packagist/dt/vcian/laravel-db-auditor?style=for-the-badge)](https://packagist.org/packages/vcian/laravel-db-auditor)
@@ -16,7 +16,7 @@
 Require Laravel DB Auditor  using [Composer](https://getcomposer.org):
 
 ```bash
-composer require vcian/laravel-db-auditor
+composer require --dev vcian/laravel-db-auditor
 ```
 ## Usage:
 
@@ -38,7 +38,19 @@ If you want to check standalone feature then you can execute below artisan comma
 > 
 > You can add more constraint to the table by seeing existing constraint with table.
 > 
+> Below example give insights about the how to see constraints in table and how to add.
+>
 
+<p align="center"><img src="art/db-constraint-select-table.png" width="100%" alt="Logo Laravel DB Auditor"></p>
+
+<p align="center"><img src="art/db-constraint-display-table-details.png" width="100%" alt="Logo Laravel DB Auditor"></p>
+
+<p align="center"><img src="art/db-constraint-add.png" width="100%" alt="Logo Laravel DB Auditor"></p>
+
+<p align="center"><img src="art/db-constraint-result.png" width="100%" alt="Logo Laravel DB Auditor"></p>
+
+
+---
 > #### **php artisan db:standard**
 > 
 > This command give you result with list of table with standard follow indication.
@@ -46,11 +58,49 @@ If you want to check standalone feature then you can execute below artisan comma
 > 
 > You can also see table specific column name which doesn't have standard followed.
 >
+> Below example give insights of database standards reports and suggestions.
 >
+>
+<p align="center"><img src="art/db-standard-cmd-1.png" width="100%" alt="Logo Laravel DB Auditor"></p>
 
+<p align="center"><img src="art/db-standard-table-report-1.png" width="100%" alt="Logo Laravel DB Auditor"></p>
+
+<p align="center"><img src="art/db-standard-table-report-2.png" width="100%" alt="Logo Laravel DB Auditor"></p>
+
+---
+> #### **php artisan db:track**
+> 
+> This command give you the track of the database files. Like when it's created with how many field in which table or whom created. this type of information show in the result.
+> 
+> 
+> You can also filter with --table=, --action=, --status=.
+> Note: "created by" return the github username and if it's not git repo than it shows system username.
+>
+<img src="art/track-default.png" width="100%" alt="Track Default"></p>
+<img src="art/track-table.png" width="100%" alt="Track Default"></p>
+<img src="art/track-st-pending.png" width="100%" alt="Track Default"></p>
+<img src="art/track-ac-create.png" width="100%" alt="Track Default"></p>
 **Note:**
 
 You have to set your database name with _DB_DATABASE_ parameter in you laravel .env file to use this feature.
+
+## ACCESS WEB PAGE
+
+You can also access this feature through WEB UI. To access web UI, kindly execute below command.
+
+php artisan vendor:publish --tag=public
+
+select "db-auditor"
+
+Route - To access the web UI  "/laravel-db-auditor"
+
+<p align="center"><img src="art/db-standard-ui.png" width="100%" alt="Laravel DB Auditor UI"></p>
+
+
+<p align="center"><img src="art/db-standard-details-ui.png" width="100%" alt="Laravel DB Auditor UI"></p>
+
+<p align="center"><img src="art/db-constraint-ui.png" width="100%" alt="Laravel DB Auditor UI"></p>
+
 
 ## Changelog
 

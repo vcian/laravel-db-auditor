@@ -1,41 +1,72 @@
 {
-  "name": "vcian/laravel-db-auditor",
-  "description": "Database DB Auditor provide leverage to audit your MySql database standards and also provide options to add constraints in table.",
-  "keywords": [
-    "Laravel",
-    "MySql",
-    "DB Audit",
-    "Database",
-    "DB Standards",
-    "DB Constraints",
-    "Php"
-  ],
-  "type": "library",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Vcian - ViitorCloud",
-      "homepage": "https://github.com/vcian"
-    }
-  ],
-  "require": {
-    "php": "^8.0",
-    "doctrine/dbal": "^3.6"
-  },
-  "autoload": {
-    "psr-4": {
-      "Vcian\\LaravelDBAuditor\\": "src/"
-    }
-  },
-  "minimum-stability": "dev",
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Vcian\\LaravelDBAuditor\\Providers\\DBAuditorServiceProvider"
-      ]
-    }
-  },
-  "require-dev": {
-    "laravel/pint": "dev-main"
-  }
+    "name": "vcian/laravel-db-auditor",
+    "description": "Database DB Auditor provide leverage to audit your MySql database standards and also provide options to add constraints in table.",
+    "keywords": [
+        "Laravel",
+        "MySql",
+        "DB Audit",
+        "Database",
+        "DB Standards",
+        "DB Constraints",
+        "Php"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vcian - ViitorCloud",
+            "homepage": "https://github.com/vcian"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "doctrine/dbal": "^4.0",
+        "yajra/laravel-datatables-oracle": "^11.1.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^7.9",
+        "nunomaduro/larastan": "^2.0.1",
+        "orchestra/testbench": "^8.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-arch": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0",
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpstan/phpstan-phpunit": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vcian\\LaravelDBAuditor\\": "src/",
+            "Vcian\\LaravelDBAuditor\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vcian\\LaravelDBAuditor\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Vcian\\LaravelDBAuditor\\Providers\\DBAuditorServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
