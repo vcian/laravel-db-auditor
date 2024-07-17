@@ -37,6 +37,7 @@ class DBAuditorServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
         $this->loadHelpers();
         $this->loadTranslationsFrom(__DIR__ . '/../Lang/', 'Lang');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/db-auditor.php', 'db-auditor');
     }
 
     /**

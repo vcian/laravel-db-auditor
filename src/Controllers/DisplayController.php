@@ -40,7 +40,7 @@ class DisplayController
             }
             $value["size"] = $value['size']." MB";
             return $value;
-        }, $this->tablesRule());
+        }, $this->allTablesRules());
 
         return response()->json(
             array(
@@ -163,7 +163,7 @@ class DisplayController
     /**
      * Update the field Constraint
      * @param Request
-     * @return 
+     * @return
      */
     public function changeConstraint(Request $request): bool
     {
@@ -206,7 +206,7 @@ class DisplayController
 
         $referenceFieldType = $this->getFieldDataType($data['reference_table'], $data['reference_field']);
         $selectedFieldType = $this->getFieldDataType($data['table_name'], $data['select_field']);
-        if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) { 
+        if ($referenceFieldType['data_type'] !== $selectedFieldType['data_type']) {
             return __('Lang::messages.constraint.error_message.foreign_not_apply');
         }
 

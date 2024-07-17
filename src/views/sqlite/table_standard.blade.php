@@ -27,7 +27,7 @@
                 @foreach ($tableStatus['fields'] as $key => $field)
                     <tr>
                         @if (!empty($field))
-                            @if ((isset($field['suggestion']) && isset($field['datatype']) && count($field) === 2) || count($field) === 1)
+                            @if ((isset($field['suggestion']) && isset($field['datatype']) ) || count($field) === 1)
                                 <td>{{ $key }}</td>
                                 <td class="text-green">✓</td>
                             @else

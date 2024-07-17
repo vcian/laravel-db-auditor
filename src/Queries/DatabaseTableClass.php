@@ -43,8 +43,10 @@ class DatabaseTableClass
      * @return array
      */
     public function mysql(): array
-    {
-        $tables = $this->select('SHOW TABLES');
-        return array_column($tables, 'Tables_in_packages');
+    {;
+        return array_column(
+            $this->select('SHOW TABLES'),
+            'Tables_in_'.database_name()
+        );
     }
 }

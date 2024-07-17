@@ -17,7 +17,7 @@ class DBStandardCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'db:standard';
+    protected $signature = 'db:standard {--table=}';
 
     /**
      * The console command description.
@@ -33,14 +33,25 @@ class DBStandardCommand extends Command
      */
     public function handle(): ?int
     {
-        $tableStatus = $this->tablesRule();
         $this->connection = connection_driver();
+
+        if ($this->option('table')){
+            return $this->tableReport($this->option('table'), $this->connection);
+        }
+
+        return $this->allTable($this->connection);
+    }
+
+    public function allTable(string $connection): ?int
+    {
+
+        $tableStatus = $this->allTablesRules();
 
         if (!$tableStatus) {
             render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
         }
 
-        render(view('DBAuditor::'.$this->connection.'.standard', ['tableStatus' => $tableStatus]));
+        render(view('DBAuditor::'.$connection.'.standard', ['tableStatus' => $tableStatus]));
 
         $continue = Constant::STATUS_TRUE;
 
@@ -51,14 +62,7 @@ class DBStandardCommand extends Command
                 return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
             }
 
-            $tableStatus = $this->tableRules($tableName);
-
-            if (!$tableStatus) {
-                return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
-            } else {
-                render(view('DBAuditor::'.$this->connection.'.fail_standard_table', ['tableStatus' => $tableStatus]));
-            }
-
+            $this->tableReport($tableName,$connection);
             $report = $this->confirm("Do you want see other table report?");
 
             if (!$report) {
@@ -67,5 +71,21 @@ class DBStandardCommand extends Command
         } while ($continue === Constant::STATUS_TRUE);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Display all table report
+     * @param string $tableName
+     * @return void|null
+     */
+    public function tableReport(string $tableName, string $connection)
+    {
+        $tableStatus = $this->tableRules($tableName);
+
+        if (!$tableStatus) {
+            return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
+        } else {
+            render(view('DBAuditor::'.$connection.'.table_standard', ['tableStatus' => $tableStatus]));
+        }
     }
 }

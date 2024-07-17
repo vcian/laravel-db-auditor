@@ -20,10 +20,13 @@ trait Rules
      * Check table name rules
      * @return array
      */
-    public function tablesRule(): array
+    public function allTablesRules(): array
     {
-        $checkTableStandard = Constant::ARRAY_DECLARATION;
-        $tableList = $this->getTableList();
+        $checkTableStandard = Constant::ARRAY_DECLARATION; // array of table name and status
+        $tableList = collect($this->getTableList())
+            ->diff(config('db-auditor.skip_tables'))
+            ->toArray();
+
         foreach ($tableList as $tableName) {
             $status = $this->checkStatus($tableName);
             $size = $this->getTableSize($tableName);
@@ -66,8 +69,9 @@ trait Rules
     public function checkRules(string $name, string $type = null): array
     {
         $messages = Constant::ARRAY_DECLARATION;
+
         try {
-            $this->setConvenationName($name);
+            $this->setConventionName($name);
             $checkConvention = $this->nameConvention();
             $checkAlphabets = $this->nameHasAlphabetCharacterSet();
 
@@ -91,6 +95,7 @@ trait Rules
             if ($checkConvention !== Constant::STATUS_TRUE) {
                 $messages[] = __('Lang::messages.standard.error_message.convention') . "($checkConvention)";
             }
+
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
@@ -113,13 +118,19 @@ trait Rules
                 $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
                 $dataTypeDetails = $this->getFieldDataType($tableName, $field);
                 $checkFields[$field]['datatype'] = $dataTypeDetails;
-                if ($dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR && $dataTypeDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
+
+                if (connection_driver() === 'mysql' && $dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR
+                    && $dataTypeDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE
+                ) {
+                    $checkFields[$field]['suggestion'] = __('Lang::messages.standard.error_message.datatype_change');
+                } elseif (connection_driver() === 'mysql') {
                     $checkFields[$field]['suggestion'] = __('Lang::messages.standard.error_message.datatype_change');
                 }
             }
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
+
         return $checkFields;
     }
 
@@ -131,18 +142,16 @@ trait Rules
     public function tableRules(string $tableName): array|bool
     {
         $checkTableStatus = Constant::ARRAY_DECLARATION;
+
         try {
-            if ($tableName) {
-                $tableExist = $this->checkTableExist($tableName);
-
-                if (!$tableExist) {
-                    return Constant::STATUS_FALSE;
-                }
-
-                $fields = $this->fieldRules($tableName);
-                $tableComment = $this->checkRules($tableName, Constant::TABLE_RULES);
-                $checkTableStatus = ["table" => $tableName, "table_comment" => $tableComment, "fields" => $fields];
+            if ($tableName && !$this->checkTableExist($tableName)) {
+                return Constant::STATUS_FALSE;
             }
+
+            $fields = $this->fieldRules($tableName);
+            $tableComment = $this->checkRules($tableName, Constant::TABLE_RULES);
+            $checkTableStatus = ["table" => $tableName, "table_comment" => $tableComment, "fields" => $fields];
+
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
