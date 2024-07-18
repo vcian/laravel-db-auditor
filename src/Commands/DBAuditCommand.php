@@ -39,20 +39,11 @@ class DBAuditCommand extends Command
             default: Constant::SUMMARY_COMMAND
         );
 
-        if ($commandSelect === Constant::STANDARD_COMMAND) {
-            $this->call('db:standard');
-        }
-
-        if ($commandSelect === Constant::CONSTRAINT_COMMAND) {
-            $this->call('db:constraint');
-        }
-
-        if ($commandSelect === Constant::SUMMARY_COMMAND) {
-            $this->call('db:summary');
-        }
-
-        if ($commandSelect === Constant::TRACK_COMMAND) {
-            $this->call('db:track');
-        }
+        match ($commandSelect) {
+            Constant::STANDARD_COMMAND => $this->call('db:standard'),
+            Constant::CONSTRAINT_COMMAND => $this->call('db:constraint'),
+            Constant::TRACK_COMMAND => $this->call('db:track'),
+            default => $this->call('db:summary'),
+        };
     }
 }
