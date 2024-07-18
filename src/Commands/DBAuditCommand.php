@@ -28,14 +28,14 @@ class DBAuditCommand extends Command
      */
     public function handle(): void
     {
-       $db = match (connection_driver()) {
+       $commands = match (connection_driver()) {
             Constant::SQLITE_DB => config('db-auditor.sqlite_commands'),
             Constant::MYSQL_DB => config('db-auditor.mysql_commands'),
         };
 
         $commandSelect = select(
             label: 'Please Select feature which would you like to do',
-            options: $db,
+            options: $commands,
             default: Constant::SUMMARY_COMMAND
         );
 
