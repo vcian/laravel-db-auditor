@@ -4,6 +4,7 @@ namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
 
+use Illuminate\Support\Facades\DB;
 use Vcian\LaravelDBAuditor\Traits\DBFunctions;
 use function Termwind\{render};
 
@@ -37,16 +38,26 @@ class DBSummaryCommand extends Command
     }
 
     /**
+     * Sqlite
+     *
      * @return int
      */
     public function sqlite(): int
     {
         $this->table(
-            ['Database Name', 'Size', 'Table Count'],
+            [
+                'Database Version',
+                'Database Name',
+                'Table Count',
+                'Busy Timeout',
+                'Default Cache Size'
+            ],
             [[
+                collect(DB::select('PRAGMA data_version;'))->first()->data_version,
                 database_name(),
-                $this->getDatabaseSize(),
-                count($this->getTableList())
+                count($this->getTableList()),
+                collect(DB::select('PRAGMA busy_timeout;')[0])['timeout'],
+                get_sqlite_database_cache_size(),
             ]]
         );
 
@@ -54,6 +65,8 @@ class DBSummaryCommand extends Command
     }
 
     /**
+     * Mysql
+     *
      * @return int
      */
     public function mysql(): int

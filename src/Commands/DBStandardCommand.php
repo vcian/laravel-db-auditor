@@ -3,6 +3,7 @@
 namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\DBFunctions;
 use Vcian\LaravelDBAuditor\Traits\Rules;
@@ -42,6 +43,11 @@ class DBStandardCommand extends Command
         return $this->allTable($this->connection);
     }
 
+    /**
+     * Display all table details.
+     * @param string $connection
+     * @return int|null
+     */
     public function allTable(string $connection): ?int
     {
 
@@ -74,8 +80,9 @@ class DBStandardCommand extends Command
     }
 
     /**
-     * Display all table report
+     * Display table report.
      * @param string $tableName
+     * @param string $connection
      * @return void|null
      */
     public function tableReport(string $tableName, string $connection)
