@@ -25,6 +25,8 @@ You can access DB Auditor using below artisan commands.
 > #### **php artisan db:audit**
 > 
 > This command give you options to select feature like check the database standards or check the constraint.
+> 
+> Now, you can skip tables which you don't want to check. Add skip table name in the .db-auditor.php file.
 >
 
 **Note:**
@@ -39,6 +41,8 @@ If you want to check standalone feature then you can execute below artisan comma
 > You can add more constraint to the table by seeing existing constraint with table.
 > 
 > Below example give insights about the how to see constraints in table and how to add.
+> 
+> Note :- SQLite does not allow to define PRIMARY KEY or FOREIGN KEY into a existing table. Therefore , you will not show any constraint edit option in this case.
 >
 
 <p align="center"><img src="art/db-constraint-select-table.png" width="100%" alt="Logo Laravel DB Auditor"></p>
