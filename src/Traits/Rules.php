@@ -89,11 +89,11 @@ trait Rules
             }
 
             if ($checkAlphabets !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.alphabets') . "($checkAlphabets)";
+                $messages[] = __('Lang::messages.standard.error_message.alphabets');
             }
 
             if ($checkConvention !== Constant::STATUS_TRUE) {
-                $messages[] = __('Lang::messages.standard.error_message.convention') . "($checkConvention)";
+                $messages[] = __('Lang::messages.standard.error_message.convention') ;
             }
 
         } catch (Exception $exception) {
