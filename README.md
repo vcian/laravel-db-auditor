@@ -5,7 +5,7 @@
 
 ## Introduction
 
-- This package provides to audit process of reviewing and evaluating a mysql and sqllite database system.
+- This package provides to audit process of reviewing and evaluating a mysql and sqlite database system.
 - DB Auditor scan your mysql/sqlite database and give insights of  standards, constraints and provide option to add the constraints through CLI.
 - The result of audit process shows list of tables & columns which doesn't have proper standards.
 
