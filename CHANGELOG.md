@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v2.0.0 - 2024-07-18
+
+### What's Changed
+
+* Enable SQLlite Audit feature.
+* Now you can skip tables from the scan.
+* You can now check direct table standard using "php artisan db: standard --table='tablename' ".
+* Minor code refactor.
+* Update readme.
+
+**Full Changelog**: https://github.com/vcian/laravel-db-auditor/compare/v1.9.0...v2.0.0
+
 ## v1.9.0 - 2024-06-12
 
 ### What's Changed
