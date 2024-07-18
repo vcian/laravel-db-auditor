@@ -119,11 +119,9 @@ trait Rules
                 $dataTypeDetails = $this->getFieldDataType($tableName, $field);
                 $checkFields[$field]['datatype'] = $dataTypeDetails;
 
-                if (connection_driver() === 'mysql' && $dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR
+                if (connection_driver() === Constant::MYSQL_DB && $dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR
                     && $dataTypeDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE
                 ) {
-                    $checkFields[$field]['suggestion'] = __('Lang::messages.standard.error_message.datatype_change');
-                } elseif (connection_driver() === 'mysql') {
                     $checkFields[$field]['suggestion'] = __('Lang::messages.standard.error_message.datatype_change');
                 }
             }
