@@ -71,6 +71,8 @@ class DBConstraintCommand extends Command
                         );
 
                         $this->selectedConstraint($selectConstrain, $noConstraintFields, $tableName);
+                        $continue = Constant::STATUS_FALSE;
+
                     } else {
                         $continue = Constant::STATUS_FALSE;
                     }
