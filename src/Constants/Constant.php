@@ -32,6 +32,12 @@ class Constant
 
     public const FIELD_RULES = 'field';
 
+    public const MYSQL_DB = 'mysql';
+
+    public const SQLITE_DB = 'sqlite';
+
+    public const UNIQUE_RULES = 'unique';
+
     public const INDEX_FILE_NAME = 'update_table_index.php';
 
     public const UNIQUE_FILE_NAME = 'update_table_unique.php';

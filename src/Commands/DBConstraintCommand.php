@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Audit;
 
+use Vcian\LaravelDBAuditor\Traits\DisplayTable;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\select;
 use function Termwind\{renderUsing};
@@ -13,7 +14,7 @@ use function Termwind\{render};
 
 class DBConstraintCommand extends Command
 {
-    use Audit;
+    use DisplayTable, Audit;
     /**
      * @var bool
      */
@@ -48,10 +49,9 @@ class DBConstraintCommand extends Command
             default: reset($tableList)
         );
 
-        $this->displayTable($tableName);
+        $this->display($tableName);
 
         if ($tableName) {
-
             $continue = Constant::STATUS_TRUE;
 
             do {
@@ -81,29 +81,6 @@ class DBConstraintCommand extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * Display selected table
-     */
-    public function displayTable(string $tableName): void
-    {
-
-        $fields = $this->getFieldsDetails($tableName);
-
-        $data = [
-            'table' => $tableName,
-            'size' => $this->getTableSize($tableName),
-            'fields' => $fields,
-            'field_count' => count($fields),
-            'constrain' => [
-                'primary' => $this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY),
-                'unique' => $this->getConstraintField($tableName, Constant::CONSTRAINT_UNIQUE_KEY),
-                'foreign' => $this->getConstraintField($tableName, Constant::CONSTRAINT_FOREIGN_KEY),
-                'index' => $this->getConstraintField($tableName, Constant::CONSTRAINT_INDEX_KEY),
-            ],
-        ];
-
-        render(view('DBAuditor::'.$this->connection.'.constraint', ['data' => $data]));
-    }
 
     /**
      * Display error messages
@@ -225,7 +202,7 @@ class DBConstraintCommand extends Command
 
             $this->successMessage(__('Lang::messages.constraint.success_message.constraint_added'));
 
-            $this->displayTable($tableName);
+            $this->display($tableName);
         }
     }
 }

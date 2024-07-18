@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
+use Vcian\LaravelDBAuditor\Queries\DatabaseConstraintClass;
 
 trait Audit
 {
@@ -112,7 +113,7 @@ trait Audit
      * Get constraint fields
      * @param string $tableName
      * @param string $input
-     * @return array
+     * @return DatabaseConstraintClass
      */
     public function getConstraintField(string $tableName, string $input): array
     {
