@@ -1,8 +1,9 @@
 {
     "name": "vcian/laravel-db-auditor",
-    "description": "Database DB Auditor provide leverage to audit your MySql database standards and also provide options to add constraints in table.",
+    "description": "Database DB Auditor provide leverage to audit your MySql,sqlite database standards and also provide options to add constraints in table.",
     "keywords": [
         "Laravel",
+        "Sqlite",
         "MySql",
         "DB Audit",
         "Database",
