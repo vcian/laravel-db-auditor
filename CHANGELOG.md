@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v2.0.1 - 2024-07-19
+
+### What's Changed
+
+* Resolved issue and modified conditional statement.
+
 ## v2.0.0 - 2024-07-18
 
 ### What's Changed
