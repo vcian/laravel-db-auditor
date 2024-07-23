@@ -13,10 +13,11 @@ class DatabaseTableClass
         $this->driver = connection_driver();
     }
 
-    public function __invoke(): array
+    public function __invoke(): array|string|int
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -48,5 +49,13 @@ class DatabaseTableClass
             $this->select('SHOW TABLES'),
             'Tables_in_'.database_name()
         );
+    }
+
+    public function pgsql() : int
+    {
+        return collect(array_column(
+            $this->select("SELECT count(*) AS table_count FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';"),
+            'table_count'
+        ))->first();
     }
 }

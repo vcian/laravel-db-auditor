@@ -17,6 +17,7 @@ class DatabaseEngineClass
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -42,5 +43,10 @@ class DatabaseEngineClass
     public function select($query): array
     {
         return DB::select($query);
+    }
+
+    public function pgsql(): string
+    {
+
     }
 }

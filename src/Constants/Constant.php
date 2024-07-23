@@ -36,6 +36,8 @@ class Constant
 
     public const SQLITE_DB = 'sqlite';
 
+    public const POSTGRESQL_DB = 'pgsql';
+
     public const UNIQUE_RULES = 'unique';
 
     public const INDEX_FILE_NAME = 'update_table_index.php';

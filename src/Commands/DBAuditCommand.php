@@ -31,6 +31,7 @@ class DBAuditCommand extends Command
        $commands = match (connection_driver()) {
             Constant::SQLITE_DB => config('db-auditor.sqlite_commands'),
             Constant::MYSQL_DB => config('db-auditor.mysql_commands'),
+            Constant::POSTGRESQL_DB => config('db-auditor.postgresql_commands'),
         };
 
         $commandSelect = select(

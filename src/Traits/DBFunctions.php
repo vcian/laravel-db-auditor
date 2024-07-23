@@ -50,9 +50,9 @@ trait DBFunctions
 
     /**
      * Get Table List
-     * @return array
+     * @return array|string|int
      */
-    public function getTableList(): array
+    public function getTableList(): array|string|int
     {
         $tableList = new DatabaseTableClass();
         return $tableList();

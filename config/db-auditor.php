@@ -27,5 +27,11 @@ return [
         Constant::CONSTRAINT_COMMAND,
         Constant::SUMMARY_COMMAND,
         Constant::TRACK_COMMAND,
+    ],
+    'postgresql_commands' => [
+        Constant::STANDARD_COMMAND,
+        Constant::CONSTRAINT_COMMAND,
+        Constant::SUMMARY_COMMAND,
+        Constant::TRACK_COMMAND,
     ]
 ];

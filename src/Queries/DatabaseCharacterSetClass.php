@@ -19,6 +19,7 @@ class DatabaseCharacterSetClass
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -44,5 +45,12 @@ class DatabaseCharacterSetClass
     public function select($query): array
     {
         return DB::select($query);
+    }
+
+    public function pgsql(): string
+    {
+        $result = $this->select("SELECT pg_encoding_to_char(encoding) AS character_set FROM pg_database WHERE datname = current_database();");
+
+        return reset($result)?->character_set ?? Constant::DASH;
     }
 }
