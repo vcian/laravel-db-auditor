@@ -19,6 +19,7 @@ class DatabaseTableFieldsClass
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -48,5 +49,19 @@ class DatabaseTableFieldsClass
     {
         $fields = $this->select("Describe `$this->table`");
         return array_column($fields, 'Field');
+    }
+
+    public function pgsql(): array
+    {
+        $fields = DB::select(
+            "SELECT column_name,data_type, character_maximum_length, is_nullable,column_default
+                    FROM
+                        information_schema.columns
+                    WHERE
+                        table_schema = 'public'
+                      AND table_name = ?",[$this->table]
+        );
+
+        return array_column($fields, 'column_name');
     }
 }

@@ -52,7 +52,7 @@ trait DBFunctions
      * Get Table List
      * @return array|string|int
      */
-    public function getTableList(): array|string|int
+    public function getTableList(): array
     {
         $tableList = new DatabaseTableClass();
         return $tableList();

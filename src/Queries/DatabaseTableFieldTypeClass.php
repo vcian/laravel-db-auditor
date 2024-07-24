@@ -20,6 +20,7 @@ class DatabaseTableFieldTypeClass
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -57,7 +58,7 @@ class DatabaseTableFieldTypeClass
 
         $dataType = reset($data);
 
-        if(in_array($dataType->DATA_TYPE, Constant::NUMERIC_DATATYPE)) {
+        if (in_array($dataType->DATA_TYPE, Constant::NUMERIC_DATATYPE)) {
 
             if($dataType->DATA_TYPE === Constant::DATATYPE_DECIMAL) {
                 $size = "(". $dataType->NUMERIC_PRECISION .",". $dataType->NUMERIC_SCALE .")";
@@ -71,5 +72,40 @@ class DatabaseTableFieldTypeClass
         if (isset($dataType->DATA_TYPE) && $dataType !== null) {
             return ['data_type' => $dataType->DATA_TYPE, 'size' => $size];
         }
+    }
+
+    public function pgsql(): array
+    {
+        $data = DB::select("SELECT
+                column_name,
+                CASE
+                WHEN data_type = 'character varying' THEN 'varchar'
+                WHEN data_type = 'character' THEN 'char'
+                WHEN data_type = 'timestamp without time zone' THEN 'timestamp'
+                ELSE data_type
+                END AS data_type,
+                character_maximum_length,
+                is_nullable,
+                CASE
+                    WHEN data_type IN ('character varying', 'character') THEN character_maximum_length
+                    WHEN data_type IN ('numeric', 'decimal') THEN numeric_precision
+                    WHEN data_type IN ('integer', 'bigint') THEN numeric_precision
+                    ELSE NULL
+                END AS size
+            FROM
+                information_schema.columns
+            WHERE
+                table_schema = 'public'
+                AND Column_name = ?
+                AND table_name = ?",[$this->field, $this->table]
+        );
+
+
+        $dataTypeDetails = reset($data);
+
+        return [
+            'data_type' => $dataTypeDetails->data_type,
+            'size' => $dataTypeDetails->size,
+        ];
     }
 }

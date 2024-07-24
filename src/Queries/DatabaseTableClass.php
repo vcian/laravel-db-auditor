@@ -13,7 +13,7 @@ class DatabaseTableClass
         $this->driver = connection_driver();
     }
 
-    public function __invoke(): array|string|int
+    public function __invoke(): array
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
@@ -51,11 +51,11 @@ class DatabaseTableClass
         );
     }
 
-    public function pgsql() : int
+    public function pgsql() : array
     {
-        return collect(array_column(
-            $this->select("SELECT count(*) AS table_count FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';"),
-            'table_count'
-        ))->first();
+        return array_column(
+            $this->select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"),
+            'table_name'
+        );
     }
 }

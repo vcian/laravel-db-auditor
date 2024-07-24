@@ -93,7 +93,7 @@ class DBSummaryCommand extends Command
             [[
                 database_name(),
                 $this->getDatabaseSize(),
-                $this->getTableList(),
+                count($this->getTableList()),
                 $this->getCharacterSetName(),
             ]]
         );
