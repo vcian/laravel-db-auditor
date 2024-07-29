@@ -12,7 +12,6 @@
         @foreach ($tableStatus as $table)
             <div class="flex space-x-1">
                 <span>{{ $table['name'] }}</span>
-                <i class="text-blue">({{ $table['size'] }} MB)</i>
                 <span class="flex-1 content-repeat-[.] text-gray"></span>
                 @if ($table['status'])
                     @php $success++; @endphp
