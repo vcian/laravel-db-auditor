@@ -19,8 +19,7 @@ class DBAuditorServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->commands($this->commands);
-
+        $this->registerConfig();
     }
 
     /**
@@ -28,19 +27,54 @@ class DBAuditorServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->publishes([
-            __DIR__ . '/../resource/images' => public_path('auditor/icon'),
-        ], 'public');
+        if ($this->app->runningInConsole()) {
+            $this->registerCommands();
+            $this->publishConfigs();
+        }
 
         $this->loadViewsFrom(__DIR__ . '/../views', 'DBAuditor');
         $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
         $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
         $this->loadHelpers();
         $this->loadTranslationsFrom(__DIR__ . '/../Lang/', 'Lang');
-        $this->mergeConfigFrom(__DIR__ . '/../../config/db-auditor.php', 'db-auditor');
+
     }
 
     /**
+     * Register config
+     * @return void
+     */
+    protected function registerConfig(): void
+    {
+        $this->mergeConfigFrom(__DIR__ . '/../../config/db-auditor.php', 'db-auditor');
+        $this->mergeConfigFrom(__DIR__ . '/../Config/audit.php', 'audit');
+    }
+
+    /**
+     * Publish configs
+     * @return void
+     */
+    protected function publishConfigs(): void
+    {
+        $this->publishes([
+            __DIR__ . '/../resource/images' => public_path('auditor/icon'),
+        ], 'public');
+
+        $this->publishes([
+            __DIR__ . '/../../config/db-auditor.php' => config_path('db-auditor.php'),
+        ], 'config');
+    }
+
+    /**
+     * Register commands
+     * @return void
+     */
+    public function registerCommands(): void
+    {
+        $this->commands($this->commands);
+    }
+    /**
+     * Load helpers
      * @return void
      */
     protected function loadHelpers(): void
