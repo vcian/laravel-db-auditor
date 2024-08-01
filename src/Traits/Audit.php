@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Vcian\LaravelDBAuditor\Constants\Constant;
-use Vcian\LaravelDBAuditor\Queries\DatabaseConstraintClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseConstraintListClass;
 
 trait Audit
 {
-    use DBFunctions;
+    use DBFunctions, DBConstraint;
 
     /**
      * Check field exist or not
@@ -29,68 +29,6 @@ trait Audit
         return Constant::STATUS_FALSE;
     }
 
-    /**
-     * Get fields which has no constraint
-     * @param string $tableName
-     * @return array
-     */
-    public function getNoConstraintFields(string $tableName): array
-    {
-        $fields = Constant::ARRAY_DECLARATION;
-        try {
-            $fieldList = DB::select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
-            WHERE `TABLE_SCHEMA`= '" . database_name() . "' AND `TABLE_NAME`= '" . $tableName . "' AND ( `COLUMN_KEY` = '' OR `COLUMN_KEY` = 'UNI' ) ");
-
-            foreach ($fieldList as $field) {
-                if (!in_array($field->DATA_TYPE, Constant::RESTRICT_DATATYPE)) {
-                    if (!$this->checkFieldHasIndex($tableName, $field->COLUMN_NAME)) {
-                        if (str_contains($field->DATA_TYPE, "int")) {
-                            $fields['integer'][] = $field->COLUMN_NAME;
-                        }
-                        $fieldDetails = $this->getFieldDataType($tableName, $field->COLUMN_NAME);
-
-                        if ($fieldDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE) {
-                            $fields['mix'][] = $field->COLUMN_NAME;
-                        }
-                    }
-                }
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $fields;
-    }
-
-    /**
-     * Get Constraint List
-     * @param string $tableName
-     * @param array $fields
-     * @return array
-     */
-    public function getConstraintList(string $tableName, array $fields): array
-    {
-        $constrainList = Constant::ARRAY_DECLARATION;
-
-        if (!empty($fields['integer'])) {
-
-            if (!$this->tableHasValue($tableName)) {
-                $constrainList[] = Constant::CONSTRAINT_FOREIGN_KEY;
-
-                if (empty($this->getConstraintField($tableName, Constant::CONSTRAINT_PRIMARY_KEY))) {
-                    $constrainList[] = Constant::CONSTRAINT_PRIMARY_KEY;
-                }
-            }
-        }
-
-        if (!empty($fields['mix'])) {
-            $constrainList[] = Constant::CONSTRAINT_INDEX_KEY;
-
-            if (!empty($this->getUniqueFields($tableName, $fields['mix']))) {
-                $constrainList[] = Constant::CONSTRAINT_UNIQUE_KEY;
-            }
-        }
-        return $constrainList;
-    }
 
     /**
      * Check Table Has Value
@@ -99,6 +37,7 @@ trait Audit
      */
     public function tableHasValue(string $tableName): bool
     {
+
         try {
             if (DB::select("Select * from " . $tableName)) {
                 return Constant::STATUS_TRUE;
@@ -109,71 +48,6 @@ trait Audit
         return Constant::STATUS_FALSE;
     }
 
-    /**
-     * Get constraint fields
-     * @param string $tableName
-     * @param string $input
-     * @return DatabaseConstraintClass
-     */
-    public function getConstraintField(string $tableName, string $input): array
-    {
-        try {
-            $constraintFields = Constant::ARRAY_DECLARATION;
-
-            if (!$this->checkTableExist($tableName)) {
-                return [];
-            }
-
-            if ($input === Constant::CONSTRAINT_INDEX_KEY) {
-                $result = DB::select("SHOW INDEX FROM `{$tableName}` where Key_name != 'PRIMARY' and Key_name not like '%unique%'");
-            } else {
-                $result = DB::select("SHOW KEYS FROM `{$tableName}` WHERE Key_name LIKE '%" . strtolower($input) . "%'");
-            }
-
-
-            if ($input === Constant::CONSTRAINT_FOREIGN_KEY) {
-                return $this->getForeignKeyDetails($tableName);
-            }
-
-            if ($result) {
-                foreach ($result as $value) {
-                    $constraintFields[] = $value->Column_name;
-                }
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $constraintFields;
-    }
-
-    /**
-     * get Foreign Key
-     * @param string $tableName
-     * @return array
-     */
-    public function getForeignKeyDetails(string $tableName): array
-    {
-        $foreignFieldDetails = Constant::ARRAY_DECLARATION;
-        try {
-            $resultForeignKey = DB::select("SELECT i.TABLE_SCHEMA, i.TABLE_NAME, i.CONSTRAINT_TYPE,k.COLUMN_NAME, i.CONSTRAINT_NAME,
-            k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i
-            LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME
-            WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = '" . database_name() . "' AND i.TABLE_NAME = '" . $tableName . "'");
-
-            if ($resultForeignKey) {
-                foreach ($resultForeignKey as $value) {
-                    $foreignFieldDetails[] = [
-                        "column_name" => $value->COLUMN_NAME,
-                        "foreign_table_name" => $value->REFERENCED_TABLE_NAME,
-                        "foreign_column_name" => $value->REFERENCED_COLUMN_NAME
-                    ];
-                }
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return $foreignFieldDetails;
-    }
 
     /**
      * Get Unique Fields

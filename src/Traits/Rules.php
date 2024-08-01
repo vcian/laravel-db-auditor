@@ -24,7 +24,7 @@ trait Rules
     {
         $checkTableStandard = Constant::ARRAY_DECLARATION; // array of table name and status
         $tableList = collect($this->getTableList())
-            ->diff(config('db-auditor.skip_tables'))
+            ->diff(config('audit.skip_tables'))
             ->toArray();
 
 

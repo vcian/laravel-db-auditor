@@ -23,40 +23,41 @@
             <span class="font-bold">Data Type</span>
         </div>
 
+
         @foreach ($data['fields'] as $field)
             <div class="flex space-x-1">
-                <span class="font-bold">{{ $field->COLUMN_NAME }}</span>
-                <i class="text-blue">{{ $field->COLUMN_TYPE }}</i>
+                <span class="font-bold">{{ $field->column_name }}</span>
+                <i class="text-blue">{{ $field->data_type }} {{ $field->size ? '(' . $field->size . ')' : '' }}</i>
                 <span class="flex-1 content-repeat-[.] text-gray"></span>
-                <span class="font-bold text-green">{{ $field->DATA_TYPE }}</span>
+                <span class="font-bold text-green">{{ $field->data_type }}</span>
             </div>
         @endforeach
     </div>
 
     <div class="mt-1">
-
-        @foreach ($data['constraint'] as $key => $value)
-            @if ($value)
-                <div class="space-x-1 mt-1">
-                    <span class="px-1 bg-green-500 text-black">{{ strtoupper($key) }}</span>
-                </div>
-                @foreach ($value as $constraintField)
-
-                    @if ($key === 'foreign')
-                        <div class="flex space-x-1">
-                            <span class="font-bold">{{ $constraintField['column_name'] }}</span>
-                            <span class="flex-1 content-repeat-[.] text-gray"></span>
-                            <i class="text-blue">{{ $constraintField['foreign_table_name'] }}</i>
-                            <span class="font-bold text-green">{{ $constraintField['foreign_column_name'] }}</span>
-                        </div>
-                    @else
-                        <div class="flex space-x-1">
-                            <span class="font-bold">{{ $constraintField }}</span>
-                            <span class="flex-1 content-repeat-[.] text-gray"></span>
-                        </div>
-                    @endif
-                @endforeach
-            @endif
-        @endforeach
+        @if(($data['constraint']))
+            @foreach ($data['constraint'] as $key => $value)
+                @if ($value)
+                    <div class="space-x-1 mt-1">
+                        <span class="px-1 bg-green-500 text-black">{{ strtoupper($key) }}</span>
+                    </div>
+                    @foreach ($value as $constraintField)
+                        @if ($constraintField && $key === 'foreign')
+                            <div class="flex space-x-1">
+                                <span class="font-bold">{{ $constraintField->column_name }}</span>
+                                <span class="flex-1 content-repeat-[.] text-gray"></span>
+                                <i class="text-blue">{{ $constraintField->foreign_table }}</i>
+                                <span class="font-bold text-green">{{ $constraintField->foreign_column }}</span>
+                            </div>
+                        @else
+                            <div class="flex space-x-1">
+                                <span class="font-bold">{{ $constraintField }}</span>
+                                <span class="flex-1 content-repeat-[.] text-gray"></span>
+                            </div>
+                        @endif
+                    @endforeach
+                @endif
+            @endforeach
+        @endif
     </div>
 </div>

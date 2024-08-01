@@ -100,7 +100,6 @@ class DatabaseTableFieldTypeClass
                 AND table_name = ?",[$this->field, $this->table]
         );
 
-
         $dataTypeDetails = reset($data);
 
         return [

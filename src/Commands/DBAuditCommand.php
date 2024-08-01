@@ -5,6 +5,7 @@ namespace Vcian\LaravelDBAuditor\Commands;
 use Illuminate\Console\Command;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 
+use function Laravel\Prompts\search;
 use function Laravel\Prompts\select;
 
 class DBAuditCommand extends Command
@@ -28,10 +29,10 @@ class DBAuditCommand extends Command
      */
     public function handle(): void
     {
-       $commands = match (connection_driver()) {
-            Constant::SQLITE_DB => config('db-auditor.sqlite_commands'),
-            Constant::MYSQL_DB => config('db-auditor.mysql_commands'),
-            Constant::POSTGRESQL_DB => config('db-auditor.postgresql_commands'),
+        $commands = match (connection_driver()) {
+            Constant::SQLITE_DB => config('audit.sqlite_commands'),
+            Constant::MYSQL_DB => config('audit.mysql_commands'),
+            Constant::POSTGRESQL_DB => config('audit.pgsql_commands'),
         };
 
         $commandSelect = select(

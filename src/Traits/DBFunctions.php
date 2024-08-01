@@ -11,6 +11,7 @@ use Vcian\LaravelDBAuditor\Queries\DatabaseEngineClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseFieldDetailsClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseSizeClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldIndexClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldsClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldTypeClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableSizeClass;
@@ -103,19 +104,8 @@ trait DBFunctions
      */
     public function checkFieldHasIndex(string $tableName, string $fieldName): bool
     {
-        try {
-            $query = "SHOW INDEX FROM " . database_name() . "." . $tableName . "";
-            $fieldConstraints = DB::select($query);
-
-            foreach ($fieldConstraints as $fieldConstraint) {
-                if ($fieldConstraint->Column_name === $fieldName && str_contains($fieldConstraint->Key_name, 'index')) {
-                    return Constant::STATUS_TRUE;
-                }
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return Constant::STATUS_FALSE;
+        $getIndex = new DatabaseTableFieldIndexClass($tableName, $fieldName);
+        return $getIndex();
     }
 
     /**
