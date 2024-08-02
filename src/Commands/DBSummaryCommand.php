@@ -73,7 +73,7 @@ class DBSummaryCommand extends Command
     public function mysql(): int
     {
         $this->table(
-            ['Database Name', 'Size', 'Table Count', 'DB Version', 'Character Set'],
+            ['Database Name', 'Size (MB)', 'Table Count', 'DB Version', 'Character Set'],
             [[
                 database_name(),
                 $this->getDatabaseSize(),
