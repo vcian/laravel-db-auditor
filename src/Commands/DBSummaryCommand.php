@@ -89,7 +89,7 @@ class DBSummaryCommand extends Command
     public function pgsql(): int
     {
         $this->table(
-            ['Database Name', 'Size', 'Table Count', 'Character Set'],
+            ['Database Name', 'Size (MB)', 'Table Count', 'Character Set'],
             [[
                 database_name(),
                 $this->getDatabaseSize(),

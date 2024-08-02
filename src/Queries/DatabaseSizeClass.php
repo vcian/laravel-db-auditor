@@ -66,10 +66,10 @@ class DatabaseSizeClass
     public function pgsql(): string
     {
         $result = collect(
-            $this->select("SELECT pg_size_pretty( pg_database_size('".$this->database."') );")
+            $this->select("SELECT (pg_database_size('".$this->database."') / 1024 / 1024) AS size;")
         )->toArray();
 
-        return reset($result)->pg_size_pretty ?? Constant::DASH;
+        return reset($result)->size ?? Constant::DASH;
     }
 
 
