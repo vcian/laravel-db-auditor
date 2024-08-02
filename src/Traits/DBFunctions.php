@@ -86,11 +86,7 @@ trait DBFunctions
      */
     public function getFieldDataType(string $tableName, string $fieldName): array|bool
     {
-        $fieldDataType = new DatabaseTableFieldTypeClass(
-            $tableName,
-            $fieldName
-        );
-
+        $fieldDataType = new DatabaseTableFieldTypeClass($tableName, $fieldName);
         return $fieldDataType();
     }
 
