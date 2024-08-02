@@ -3,9 +3,9 @@
 namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
-use League\Flysystem\Config;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 
+use function Laravel\Prompts\search;
 use function Laravel\Prompts\select;
 
 class DBAuditCommand extends Command
@@ -29,14 +29,13 @@ class DBAuditCommand extends Command
      */
     public function handle(): void
     {
-        $commands = match (connection_driver()) {
-            Constant::SQLITE_DB => config('audit.sqlite_commands'),
-            Constant::MYSQL_DB => config('audit.mysql_commands'),
-        };
-
         $commandSelect = select(
             label: 'Please Select feature which would you like to do',
-            options: $commands,
+            options: match (connection_driver()) {
+                Constant::SQLITE_DB => config('audit.sqlite_commands'),
+                Constant::MYSQL_DB => config('audit.mysql_commands'),
+                Constant::POSTGRESQL_DB => config('audit.pgsql_commands'),
+            },
             default: Constant::SUMMARY_COMMAND
         );
 

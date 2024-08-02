@@ -2,15 +2,14 @@
 
 namespace Vcian\LaravelDBAuditor\Traits;
 
-use Exception;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Queries\DatabaseCharacterSetClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseEngineClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseFieldDetailsClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseSizeClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldIndexClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldsClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableFieldTypeClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseTableSizeClass;
@@ -50,7 +49,7 @@ trait DBFunctions
 
     /**
      * Get Table List
-     * @return array
+     * @return array|string|int
      */
     public function getTableList(): array
     {
@@ -66,7 +65,7 @@ trait DBFunctions
     public function getFieldsDetails(string $tableName): array
     {
         $fieldDetails = new DatabaseFieldDetailsClass($tableName);
-        return $fieldDetails() ?? Constant::ARRAY_DECLARATION;
+        return $fieldDetails();
     }
 
     /**
@@ -87,11 +86,7 @@ trait DBFunctions
      */
     public function getFieldDataType(string $tableName, string $fieldName): array|bool
     {
-        $fieldDataType = new DatabaseTableFieldTypeClass(
-            $tableName,
-            $fieldName
-        );
-
+        $fieldDataType = new DatabaseTableFieldTypeClass($tableName, $fieldName);
         return $fieldDataType();
     }
 
@@ -103,19 +98,8 @@ trait DBFunctions
      */
     public function checkFieldHasIndex(string $tableName, string $fieldName): bool
     {
-        try {
-            $query = "SHOW INDEX FROM " . database_name() . "." . $tableName . "";
-            $fieldConstraints = DB::select($query);
-
-            foreach ($fieldConstraints as $fieldConstraint) {
-                if ($fieldConstraint->Column_name === $fieldName && str_contains($fieldConstraint->Key_name, 'index')) {
-                    return Constant::STATUS_TRUE;
-                }
-            }
-        } catch (Exception $exception) {
-            Log::error($exception->getMessage());
-        }
-        return Constant::STATUS_FALSE;
+        $getIndex = new DatabaseTableFieldIndexClass($tableName, $fieldName);
+        return $getIndex();
     }
 
     /**

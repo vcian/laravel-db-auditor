@@ -3,7 +3,9 @@
 namespace Vcian\LaravelDBAuditor\Traits;
 
 use Illuminate\Support\Facades\DB;
+use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Queries\DatabaseConstraintClass;
+use Vcian\LaravelDBAuditor\Queries\DatabaseConstraintListClass;
 use function Termwind\{renderUsing};
 use function Termwind\{render};
 
@@ -37,9 +39,9 @@ trait DisplayTable
             'size' => $this->getTableSize($tableName),
             'fields' => $fields,
             'field_count' => count($fields),
-            'constraint' => $constraint(),
+            'constraint' => $constraint()
         ];
 
-        render(view('DBAuditor::'.$this->connection.'.constraint', ['data' => $data]));
+        render(view('DBAuditor::'.connection_driver().'.constraint', ['data' => $data]));
     }
 }

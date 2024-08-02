@@ -18,6 +18,7 @@ class DatabaseFieldDetailsClass
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -46,5 +47,31 @@ class DatabaseFieldDetailsClass
     {
         return $this->select("SELECT * FROM `INFORMATION_SCHEMA`.`COLUMNS`
                             WHERE `TABLE_SCHEMA`= '" . $this->database . "' AND `TABLE_NAME`= '" . $this->table . "' ");
+    }
+
+    public function pgsql(): array
+    {
+        return DB::select("SELECT
+                *,
+                CASE
+                WHEN data_type = 'character varying' THEN 'varchar'
+                WHEN data_type = 'character' THEN 'char'
+                WHEN data_type = 'timestamp without time zone' THEN 'timestamp'
+                ELSE data_type
+                END AS data_type,
+                character_maximum_length,
+                is_nullable,
+                CASE
+                    WHEN data_type IN ('character varying', 'character') THEN character_maximum_length
+                    WHEN data_type IN ('numeric', 'decimal') THEN numeric_precision
+                    WHEN data_type IN ('integer', 'bigint') THEN numeric_precision
+                    ELSE NULL
+                END AS size
+            FROM
+                information_schema.columns
+            WHERE
+                table_schema = 'public'
+                AND table_name = ?",[$this->table]
+            );
     }
 }

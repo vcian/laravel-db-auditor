@@ -19,6 +19,7 @@ class DatabaseTableSizeClass
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -56,6 +57,12 @@ class DatabaseTableSizeClass
 
         return reset($result)?->size ?? Constant::DASH;
 
+    }
+
+    public function pgsql(): string
+    {
+        $result = $this->select("SELECT pg_size_pretty(pg_table_size('".$this->table."')) AS size");
+        return reset($result)?->size ?? Constant::DASH;
     }
 
 

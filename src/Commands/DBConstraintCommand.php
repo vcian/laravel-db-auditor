@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Audit;
 
+use Vcian\LaravelDBAuditor\Traits\DBConstraint;
 use Vcian\LaravelDBAuditor\Traits\DisplayTable;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\select;
@@ -14,7 +15,7 @@ use function Termwind\{render};
 
 class DBConstraintCommand extends Command
 {
-    use DisplayTable, Audit;
+    use Audit, DisplayTable, DBConstraint;
     /**
      * @var bool
      */
@@ -40,8 +41,21 @@ class DBConstraintCommand extends Command
      */
     public function handle(): int|string
     {
-        $this->connection = connection_driver();
-        $tableList = $this->getTableList();
+        return match (connection_driver()) {
+            'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
+            default => $this->mysql(),
+        };
+    }
+
+    /**
+     * MySQL Constraint
+     * @return int
+     */
+    public function mysql()
+    {
+        $tableList =  collect($this->getTableList())
+            ->diff(config('audit.skip_tables'))->values()->toArray();
 
         $tableName = select(
             label: __('Lang::messages.constraint.question.table_selection'),
@@ -60,10 +74,10 @@ class DBConstraintCommand extends Command
                 if (empty($noConstraintFields)) {
                     $continue = Constant::STATUS_FALSE;
                 } else {
-                    if (confirm(label: __('Lang::messages.constraint.question.continue'))) {
-
+                    if (confirm(label: __('Lang::messages.constraint.question.add_constraint'))) {
                         $this->skip = Constant::STATUS_FALSE;
                         $constraintList = $this->getConstraintList($tableName, $noConstraintFields);
+
                         $selectConstrain = select(
                             label: __('Lang::messages.constraint.question.constraint_selection'),
                             options: $constraintList,
@@ -83,6 +97,35 @@ class DBConstraintCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * PostgreSQL Constraint
+     * @return int
+     */
+    public function pgsql()
+    {
+        $tableList = collect($this->getTableList())
+            ->diff(config('audit.skip_tables'))->values()->toArray();
+        $tableName = select(
+            label: __('Lang::messages.constraint.question.table_selection'),
+            options: $tableList,
+            default: reset($tableList)
+        );
+
+        $this->display($tableName);
+
+        if ($tableName) {
+
+            $continue = Constant::STATUS_TRUE;
+
+            do {
+                if ($this->getNoConstraintFields($tableName)) {
+                    $continue = Constant::STATUS_FALSE;
+                };
+            } while ($continue === Constant::STATUS_TRUE);
+        }
+
+        return self::SUCCESS;
+    }
 
     /**
      * Display error messages

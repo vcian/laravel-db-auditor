@@ -18,7 +18,7 @@ return [
     'constraint' => [
         'question' => [
             'table_selection' => 'Which table would you like to audit?',
-            'continue' => 'Do you want add more constraint?',
+            'add_constraint' => 'Do you want add more constraint?',
             'constraint_selection' => 'Please select a constraint which you want to add.',
             'field_selection' => 'Please select a field to add constraint',
             'foreign_table' => 'Please add foreign table name.',

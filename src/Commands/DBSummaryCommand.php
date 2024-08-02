@@ -33,6 +33,7 @@ class DBSummaryCommand extends Command
     {
         return match (connection_driver()) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -72,12 +73,27 @@ class DBSummaryCommand extends Command
     public function mysql(): int
     {
         $this->table(
-            ['Database Name', 'Size', 'Table Count', 'Engin', 'Character Set'],
+            ['Database Name', 'Size (MB)', 'Table Count', 'DB Version', 'Character Set'],
             [[
                 database_name(),
                 $this->getDatabaseSize(),
                 count($this->getTableList()),
                 $this->getDatabaseEngin(),
+                $this->getCharacterSetName(),
+            ]]
+        );
+
+        return self::SUCCESS;
+    }
+
+    public function pgsql(): int
+    {
+        $this->table(
+            ['Database Name', 'Size (MB)', 'Table Count', 'Character Set'],
+            [[
+                database_name(),
+                $this->getDatabaseSize(),
+                count($this->getTableList()),
                 $this->getCharacterSetName(),
             ]]
         );

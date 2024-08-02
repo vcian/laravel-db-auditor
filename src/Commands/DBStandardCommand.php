@@ -91,8 +91,8 @@ class DBStandardCommand extends Command
 
         if (!$tableStatus) {
             return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
-        } else {
-            render(view('DBAuditor::'.$connection.'.table_standard', ['tableStatus' => $tableStatus]));
         }
+
+        render(view('DBAuditor::'.$connection.'.table_standard', ['tableStatus' => $tableStatus]));
     }
 }

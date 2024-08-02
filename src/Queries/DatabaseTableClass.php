@@ -17,6 +17,7 @@ class DatabaseTableClass
     {
         return match ($this->driver) {
             'sqlite' => $this->sqlite(),
+            'pgsql' => $this->pgsql(),
             default => $this->mysql(),
         };
     }
@@ -47,6 +48,14 @@ class DatabaseTableClass
         return array_column(
             $this->select('SHOW TABLES'),
             'Tables_in_'.database_name()
+        );
+    }
+
+    public function pgsql() : array
+    {
+        return array_column(
+            $this->select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"),
+            'table_name'
         );
     }
 }

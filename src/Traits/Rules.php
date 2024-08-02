@@ -24,8 +24,9 @@ trait Rules
     {
         $checkTableStandard = Constant::ARRAY_DECLARATION; // array of table name and status
         $tableList = collect($this->getTableList())
-            ->diff(config('db-auditor.skip_tables'))
+            ->diff(config('audit.skip_tables'))
             ->toArray();
+
 
         foreach ($tableList as $tableName) {
             $status = $this->checkStatus($tableName);
@@ -113,18 +114,19 @@ trait Rules
         $checkFields = Constant::ARRAY_DECLARATION;
         try {
             $fields = $this->getFields($tableName);
-
+            $fieldDT = [];
             foreach ($fields as $field) {
                 $checkFields[$field] = $this->checkRules($field, Constant::FIELD_RULES);
                 $dataTypeDetails = $this->getFieldDataType($tableName, $field);
                 $checkFields[$field]['datatype'] = $dataTypeDetails;
 
-                if (connection_driver() === Constant::MYSQL_DB && $dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR
+                if (connection_driver() === Constant::POSTGRESQL_DB && $dataTypeDetails['data_type'] === Constant::DATATYPE_VARCHAR
                     && $dataTypeDetails['size'] <= Constant::DATATYPE_VARCHAR_SIZE
                 ) {
                     $checkFields[$field]['suggestion'] = __('Lang::messages.standard.error_message.datatype_change');
                 }
             }
+
         } catch (Exception $exception) {
             Log::error($exception->getMessage());
         }
