@@ -5,8 +5,8 @@
 
 ## Introduction
 
-- This package provides to audit process of reviewing and evaluating a mysql and sqlite database system.
-- DB Auditor scan your mysql/sqlite database and give insights of  standards, constraints and provide option to add the constraints through CLI.
+- This package provides to audit process of reviewing and evaluating a mysql, sqlite and postgresql database system.
+- DB Auditor scan your mysql/sqlite/postgresql database and give insights of  standards, constraints and provide option to add the constraints through CLI.
 - The result of audit process shows list of tables & columns which doesn't have proper standards.
 
 ## Installation & Usage
@@ -42,8 +42,10 @@ If you want to check standalone feature then you can execute below artisan comma
 > 
 > Below example give insights about the how to see constraints in table and how to add.
 > 
-> Note :- SQLite does not allow to define PRIMARY KEY or FOREIGN KEY into a existing table. Therefore , you will not show any constraint edit option in this case.
->
+> Note :-
+>   - SQLite does not allow to define PRIMARY KEY or FOREIGN KEY into a existing table.
+>   - Add constraint option is not support for PostgreSQL. Will release soon.
+
 
 <p align="center"><img src="art/db-constraint-select-table.png" width="100%" alt="Logo Laravel DB Auditor"></p>
 
