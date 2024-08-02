@@ -2,9 +2,7 @@
 
 namespace Vcian\LaravelDBAuditor\Traits;
 
-use Exception;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Queries\DatabaseCharacterSetClass;
 use Vcian\LaravelDBAuditor\Queries\DatabaseEngineClass;
@@ -67,7 +65,7 @@ trait DBFunctions
     public function getFieldsDetails(string $tableName): array
     {
         $fieldDetails = new DatabaseFieldDetailsClass($tableName);
-        return $fieldDetails() ?? Constant::ARRAY_DECLARATION;
+        return $fieldDetails();
     }
 
     /**
