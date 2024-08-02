@@ -2,6 +2,16 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v2.2.0 - 2024-08-02
+
+### What's Changed
+
+* Integrated Postgresql. Code formatting and resolved minor bugs by @ruchit288 in https://github.com/vcian/laravel-db-auditor/pull/63
+* Now you can audit the PostgreSQL database. Note- Add constraint feature is not supported at this moment for PostgreSQL.
+* Update content and details in readme and composer files. by @ruchit288 in https://github.com/vcian/laravel-db-auditor/pull/64
+
+**Full Changelog**: https://github.com/vcian/laravel-db-auditor/compare/v2.1.0...v2.2.0
+
 ## v2.1.0 - 2024-07-29
 
 ### What's Changed
