@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-db-auditor` will be documented in this file
 
+## v2.2.1 - 2024-08-09
+
+### What's Changed
+
+* Update dependency. by @ruchit288 in https://github.com/vcian/laravel-db-auditor/pull/65
+
+**Full Changelog**: https://github.com/vcian/laravel-db-auditor/compare/v2.2.0...v2.2.1
+
 ## v2.2.0 - 2024-08-02
 
 ### What's Changed
