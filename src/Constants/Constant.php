@@ -60,7 +60,7 @@ class Constant
 
     public const TRACK_COMMAND = 'TRACK';
 
-    public const MYSQL_PERFORMANCE_COMMAND = 'MYSQL_PERFORMANCE';
+    public const CHECK_PERFORMANCE_PARAMETER_COMMAND = 'CHECK_PERFORMANCE_PARAMETER';
 
     public const NULL = null;
 
