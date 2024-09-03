@@ -177,4 +177,85 @@ trait Audit
         }
         return Constant::STATUS_TRUE;
     }
+
+    public function generatePerformanceReport(): array
+    {
+        try {
+            $report = [];
+            
+            $variables = DB::select("SHOW VARIABLES");
+            $variablesMap = array_column($variables, 'Value', 'Variable_name');
+
+            $report['innodb_buffer_pool_size'] = [
+                'current' => $variablesMap['innodb_buffer_pool_size'],
+                'suggestion' => $this->suggestInnoDBBufferPoolSize($variablesMap['innodb_buffer_pool_size'])
+            ];
+
+            $report['query_cache_size'] = ($variablesMap['have_query_cache'] === "YES") ? [
+                'current' => $variablesMap['query_cache_size'],
+                'suggestion' => $this->suggestQueryCacheSize($variablesMap['query_cache_size'])
+            ] : [
+                'current' => "DISABLES",
+                'suggestion' => "To see query cache size, you need to enable query cache first."
+            ];
+
+            $report['max_connections'] = [
+                'current' => $variablesMap['max_connections'],
+                'suggestion' => $this->suggestMaxConnections($variablesMap['max_connections'])
+            ];
+
+            $report['innodb_log_file_size'] = [
+                'current' => $variablesMap['innodb_log_file_size'],
+                'suggestion' => $this->suggestInnoDBLogFileSize($variablesMap['innodb_log_file_size'])
+            ];
+
+            return $report;
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+            return ['error' => 'Failed to generate database performance report'];
+        }
+    }
+
+    private function suggestInnoDBBufferPoolSize($currentSize): string
+    {
+        $sizeInGB = $currentSize / (1024 * 1024 * 1024);
+        if ($sizeInGB < 1) {
+            return "Consider increasing to at least 1GB for better performance";
+        } elseif ($sizeInGB > 70) {
+            return "Current size is good. Ensure it doesn't exceed 70-80% of total RAM";
+        }
+        return "Current size seems appropriate";
+    }
+
+    private function suggestQueryCacheSize($currentSize): string
+    {
+        $sizeInMB = $currentSize / (1024 * 1024);
+        if ($sizeInMB == 0) {
+            return "Query cache is disabled. Consider enabling it for read-heavy workloads";
+        } elseif ($sizeInMB > 256) {
+            return "Consider reducing query cache size. Larger sizes can lead to overhead";
+        }
+        return "Current size seems appropriate";
+    }
+
+    private function suggestMaxConnections($currentValue): string
+    {
+        if ($currentValue < 100) {
+            return "Consider increasing max_connections for better concurrency";
+        } elseif ($currentValue > 1000) {
+            return "High max_connections. Ensure server can handle this many connections";
+        }
+        return "Current value seems appropriate";
+    }
+
+    private function suggestInnoDBLogFileSize($currentSize): string
+    {
+        $sizeInMB = $currentSize / (1024 * 1024);
+        if ($sizeInMB < 128) {
+            return "Consider increasing innodb_log_file_size for better performance";
+        } elseif ($sizeInMB > 2048) {
+            return "Large log file size. Ensure it doesn't impact crash recovery time";
+        }
+        return "Current size seems appropriate";
+    }
 }

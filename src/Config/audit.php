@@ -19,6 +19,7 @@ return [
         Constant::CONSTRAINT_COMMAND,
         Constant::SUMMARY_COMMAND,
         Constant::TRACK_COMMAND,
+        Constant::MYSQL_PERFORMANCE_COMMAND,
     ],
     'sqlite_commands' => [
         Constant::STANDARD_COMMAND,

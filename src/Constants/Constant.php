@@ -60,6 +60,8 @@ class Constant
 
     public const TRACK_COMMAND = 'TRACK';
 
+    public const MYSQL_PERFORMANCE_COMMAND = 'MYSQL_PERFORMANCE';
+
     public const NULL = null;
 
     public const NUMERIC_PATTERN = '/[0-9]+/';
@@ -120,4 +122,12 @@ class Constant
     public const STATUS = 'status';
 
     public const DEFAULT_SIZE = '0.00';
+
+    public const BYTES_IN_GB = 1073741824;
+    public const BYTES_IN_MB = 1048576;
+    public const BYTES_IN_KB = 1024;
+
+    public const GB = 'GB';
+    public const MB = 'MB';
+    public const KB = 'KB';
 }
