@@ -3,6 +3,7 @@
 namespace Vcian\LaravelDBAuditor\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Vcian\LaravelDBAuditor\Commands\MySQLPerformanceCommand;
 
 class DBAuditorServiceProvider extends ServiceProvider
 {
@@ -12,6 +13,7 @@ class DBAuditorServiceProvider extends ServiceProvider
         'Vcian\LaravelDBAuditor\Commands\DBConstraintCommand',
         'Vcian\LaravelDBAuditor\Commands\DBSummaryCommand',
         'Vcian\LaravelDBAuditor\Commands\DBTrackCommand',
+        'Vcian\LaravelDBAuditor\Commands\CheckPerformanceParameterCommand',
     ];
 
     /**
@@ -37,7 +39,6 @@ class DBAuditorServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
         $this->loadHelpers();
         $this->loadTranslationsFrom(__DIR__ . '/../Lang/', 'Lang');
-
     }
 
     /**
