@@ -4,8 +4,7 @@ namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
 use Vcian\LaravelDBAuditor\Traits\DBConnection;
-
-use function Termwind\{render};
+use function Laravel\Prompts\table;
 
 class DBSummaryCommand extends Command
 {
@@ -30,16 +29,17 @@ class DBSummaryCommand extends Command
      */
     public function handle()
     {
-        $this->table(
-            ['Database Name', 'Size', 'Table Count', 'Engin', 'Character Set'],
-            [[
-                $this->getDatabaseName(),
-                $this->getDatabaseSize(),
-                count($this->getTableList()),
-                $this->getDatabaseEngin(),
-                $this->getCharacterSetName(),
-            ]]
-        );
+        table(
+            headers: ['Database Name', 'Size', 'Table Count', 'Engin', 'Character Set', 'Last Modified Table'],
+            rows: [[
+                        $this->getDatabaseName(),
+                        $this->getDatabaseSize(),
+                        count($this->getTableList()),
+                        $this->getDatabaseEngin(),
+                        $this->getCharacterSetName(),
+                        $this->getLastModifiedTable()
+                    ]]
+            );
 
         return self::SUCCESS;
     }

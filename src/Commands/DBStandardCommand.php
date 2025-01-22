@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\Rules;
 use function Termwind\{render};
+use function Laravel\Prompts\suggest;
+use function Laravel\Prompts\confirm;
 
 class DBStandardCommand extends Command
 {
@@ -32,7 +34,7 @@ class DBStandardCommand extends Command
         $tableStatus = $this->tablesRule();
 
         if (!$tableStatus) {
-            render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
+            return $this->components->error('No Table Found');
         }
 
         render(view('DBAuditor::standard', ['tableStatus' => $tableStatus]));
@@ -40,21 +42,35 @@ class DBStandardCommand extends Command
         $continue = Constant::STATUS_TRUE;
 
         do {
-            $tableName = $this->anticipate('Please enter table name if you want to see the table report', $this->getTableList());
+            $tableName = suggest(
+                label: 'Please select table name if you want to see the table report',
+                options: $this->getTableList(),
+                placeholder: 'E.g. Users',
+            );
 
             if (empty($tableName)) {
-                return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
+                $this->components->error('No Table Found');
+                $continue = confirm("Do you want to try again?");
+                if (!$continue) {
+                    return self::SUCCESS;
+                }
+                continue;
             }
 
             $tableStatus = $this->tableRules($tableName);
 
             if (!$tableStatus) {
-                return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
+                $this->components->error('No Table Found');
+                $continue = confirm("Do you want to try again?");
+                if (!$continue) {
+                    return self::SUCCESS;
+                }
+                continue;
             } else {
                 render(view('DBAuditor::fail_standard_table', ['tableStatus' => $tableStatus]));
             }
 
-            $report = $this->confirm("Do you want see other table report?");
+            $report = confirm("Do you want see other table report?");
 
             if (!$report) {
                 $continue = Constant::STATUS_FALSE;

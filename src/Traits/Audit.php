@@ -301,4 +301,15 @@ trait Audit
         }
         return $uniqueField;
     }
+
+    /**
+     * Check table is exist or not.
+     * 
+     * @param string $tableName
+     * @return bool
+     */
+    public function isTableExist(string $tableName): bool
+    {
+        return $this->checkTableExist($tableName);
+    }
 }

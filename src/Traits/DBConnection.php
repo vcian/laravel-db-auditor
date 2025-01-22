@@ -229,4 +229,17 @@ trait DBConnection
         }
         return Constant::NULL;
     }
+
+    public function getLastModifiedTable() {
+
+        try {
+            return DB::table('information_schema.tables')
+                ->where('table_schema',  $this->getDatabaseName())
+                ->orderBy('update_time', 'desc')
+                ->value('table_name');
+
+        } catch (Exception $exception) {
+            Log::error($exception->getMessage());
+        }
+    }
 }
