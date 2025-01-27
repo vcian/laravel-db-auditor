@@ -12,6 +12,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\select;
 use function Termwind\{renderUsing};
 use function Termwind\{render};
+use function Laravel\Prompts\suggest;
 
 class DBConstraintCommand extends Command
 {
@@ -57,11 +58,16 @@ class DBConstraintCommand extends Command
         $tableList =  collect($this->getTableList())
             ->diff(config('audit.skip_tables'))->values()->toArray();
 
-        $tableName = select(
+        $tableName = suggest(
             label: __('Lang::messages.constraint.question.table_selection'),
             options: $tableList,
-            default: reset($tableList)
+            placeholder: 'E.g. Users',
         );
+        
+        if (!$this->isTableExist($tableName)) {
+            $this->components->error('No Table Found');
+            return self::FAILURE;
+        }
 
         $this->display($tableName);
 
@@ -154,7 +160,11 @@ class DBConstraintCommand extends Command
         $fields = Constant::ARRAY_DECLARATION;
 
         do {
-            $referenceTable = $this->anticipate(__('Lang::messages.constraint.question.foreign_table'), $this->getTableList());
+            $referenceTable = suggest(
+                label: __('Lang::messages.constraint.question.foreign_table'),
+                options: $this->getTableList(),
+                placeholder: 'E.g. Users',
+            );
 
             if ($referenceTable && $this->checkTableExist($referenceTable)) {
 
@@ -162,7 +172,10 @@ class DBConstraintCommand extends Command
                     $fields[] = $field->COLUMN_NAME;
                 }
                 do {
-                    $referenceField = $this->anticipate(__('Lang::messages.constraint.question.foreign_field'), $fields);
+                    $referenceField =  suggest(
+                        label: __('Lang::messages.constraint.question.foreign_field'),
+                        options: $fields
+                    );
 
                     if (! $referenceField || ! $this->checkFieldExistOrNot($referenceTable, $referenceField)) {
                         $this->errorMessage(__('Lang::messages.constraint.error_message.field_not_found'));
@@ -229,7 +242,7 @@ class DBConstraintCommand extends Command
             }
 
             if (! $this->skip) {
-                $selectField = $this->choice(
+                $selectField = select(
                     __('Lang::messages.constraint.question.field_selection').' '.strtolower($selectConstrain).' key',
                     $fields
                 );

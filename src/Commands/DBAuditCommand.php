@@ -43,7 +43,7 @@ class DBAuditCommand extends Command
             Constant::STANDARD_COMMAND => $this->call('db:standard'),
             Constant::CONSTRAINT_COMMAND => $this->call('db:constraint'),
             Constant::TRACK_COMMAND => $this->call('db:track'),
-            Constant::CHECK_PERFORMANCE_PARAMETER_COMMAND => $this->call('db:check-performance-parameter '),
+            Constant::CHECK_PERFORMANCE_PARAMETER_COMMAND => $this->call('db:check-performance-parameter'),
             default => $this->call('db:summary'),
         };
     }

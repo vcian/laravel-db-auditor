@@ -3,10 +3,11 @@
 namespace Vcian\LaravelDBAuditor\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Vcian\LaravelDBAuditor\Constants\Constant;
 use Vcian\LaravelDBAuditor\Traits\DBFunctions;
 use Vcian\LaravelDBAuditor\Traits\Rules;
+use function Laravel\Prompts\suggest;
+use function Laravel\Prompts\confirm;
 use function Termwind\{render};
 
 class DBStandardCommand extends Command
@@ -54,7 +55,7 @@ class DBStandardCommand extends Command
         $tableStatus = $this->allTablesRules();
 
         if (!$tableStatus) {
-            render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
+            return $this->components->error('No Table Found');
         }
 
         render(view('DBAuditor::'.$connection.'.standard', ['tableStatus' => $tableStatus]));
@@ -62,14 +63,34 @@ class DBStandardCommand extends Command
         $continue = Constant::STATUS_TRUE;
 
         do {
-            $tableName = $this->anticipate('Please enter table name if you want to see the table report', $this->getTableList());
+            $tableName = suggest(
+                label: 'Please select table name if you want to see the table report',
+                options: $this->getTableList(),
+                placeholder: 'E.g. Users',
+            );
 
             if (empty($tableName)) {
-                return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
+                $this->components->error('No Table Found');
+                $continue = confirm("Do you want to try again?");
+                if (!$continue) {
+                    return self::SUCCESS;
+                }
+                continue;
             }
 
-            $this->tableReport($tableName,$connection);
-            $report = $this->confirm("Do you want see other table report?");
+            $tableStatus = $this->tableRules($tableName);
+
+            if (!$tableStatus) {
+                $this->components->error('No Table Found');
+                $continue = confirm("Do you want to try again?");
+                if (!$continue) {
+                    return self::SUCCESS;
+                }
+                continue;
+            } else {
+                render(view('DBAuditor::'.$connection.'.table_standard', ['tableStatus' => $tableStatus]));
+            }
+            $report = confirm("Do you want see other table report?");
 
             if (!$report) {
                 $continue = Constant::STATUS_FALSE;
@@ -77,22 +98,5 @@ class DBStandardCommand extends Command
         } while ($continue === Constant::STATUS_TRUE);
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Display table report.
-     * @param string $tableName
-     * @param string $connection
-     * @return void|null
-     */
-    public function tableReport(string $tableName, string $connection)
-    {
-        $tableStatus = $this->tableRules($tableName);
-
-        if (!$tableStatus) {
-            return render(view('DBAuditor::error_message', ['message' => 'No Table Found']));
-        }
-
-        render(view('DBAuditor::'.$connection.'.table_standard', ['tableStatus' => $tableStatus]));
     }
 }

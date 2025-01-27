@@ -60,7 +60,7 @@ class Constant
 
     public const TRACK_COMMAND = 'TRACK';
 
-    public const CHECK_PERFORMANCE_PARAMETER_COMMAND = 'CHECK_PERFORMANCE_PARAMETER';
+    public const CHECK_PERFORMANCE_PARAMETER_COMMAND = 'CHECK PERFORMANCE PARAMETER';
 
     public const NULL = null;
 
