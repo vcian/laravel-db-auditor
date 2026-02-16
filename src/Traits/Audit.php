@@ -93,8 +93,8 @@ trait Audit
         string $table,
         string $field,
         string $constraint,
-        string $referenceTableName = null,
-        string $referenceField = null
+        ?string $referenceTableName = null,
+        ?string $referenceField = null
     ): bool
     {
         try {
